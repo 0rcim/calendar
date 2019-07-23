@@ -44,11 +44,19 @@
         </div>
         <!-- body -->
         <chevron-btn :position="'right'" :chevronShow="right_show" @shown="right_fn" @hidden="right_fn_" @slideMonth="gotoNextMonth"></chevron-btn>
+        <div class="backToday" :title="'回到今天'">
+            <touch-ripple :side="1" @event_click="backToday">
+                <md-ico :codepoint="'today'" :color="'#ea5245'"></md-ico>
+            </touch-ripple>
+        </div>
     </div>
 </template>
 <script>
 import utils from "../utils";
+import data from "../server/data";
 utils.dateFormat();
+console.log(data.festivalData.getSolarTerm(2020, 9, 22));
+console.log(data.festivalData.getSolarTerm(2019, 9, 23));
 import mdIco from "./MdIco.vue";
 import touchRipple from "./TouchRipple.vue";
 import caleHeader from "./CaleHeader.vue";
@@ -250,6 +258,9 @@ export default {
             that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1));
             that.centerDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is));
             that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1));
+        },
+        backToday () {
+
         }
     },
     data () {
@@ -368,6 +379,7 @@ export default {
     display: flex; flex-wrap: nowrap;
     margin-left: -100%;
     transition: height 200ms ease-in-out;
+    will-change: height;
 }
 .slide-outer.short{
     height: 423px;
@@ -386,6 +398,12 @@ export default {
     min-height: 450px;
     width: 100%;
     transition: opacity 100ms;
+}
+.backToday{
+    position: absolute; right: 5px; bottom: 5px; z-index: 2;
+}
+.backToday .ico-outer{
+    padding: 0;
 }
 </style>
 
