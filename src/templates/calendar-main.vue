@@ -23,7 +23,7 @@
                 </div>
             </div>
         </transition>
-        <cale-header :month="dateJSON.month" :day="dateJSON.day" :year="dateJSON.year" :isToday="dateJSON.isToday"></cale-header>
+        <cale-header :month="dateJSON.month" :day="dateJSON.day" :year="dateJSON.year" :isToday="isToday"></cale-header>
         <week-banner :arr="week_order"></week-banner>
         <div class="slide-container">
             <div class="slide-outer">
@@ -58,7 +58,17 @@ export default {
     // "components": { mdIco , touchRipple , weekBanner, datesTable , caleDate, calePanel },
     "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader },
     "computed": {
-
+        isToday () {
+            console.log("#62", that._toMonth_, that.prev_select_obj)
+            // return "今天";
+            var mth = that.prev_select_obj.json["objectDate"].match(/(.*)-(.*)/);
+            var selectDate = that.prev_select_obj !== null ? new Date(`${that.prev_select_obj.json.objectDate}-${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}\ 00:00:00`).valueOf():0;
+            var todayDate = that.prev_select_obj !== null ? new Date(`${that._toMonth_.todayDate}\ 00:00:00`).valueOf():0;
+            var distance = (selectDate - todayDate)/86400000;
+            console.log("#68", `${that.prev_select_obj.json.objectDate}-${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}`, `${that._toMonth_.todayDate}`)
+            console.log("#69", distance)
+            return distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"));
+        }
     },
     "methods": {
         hideNav () {
@@ -143,23 +153,26 @@ export default {
         // },
         selected (data) {
             // --- select highlight
+            console.log("#154", data)
             that.prev_select_obj !== null && (that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["isSelected"] = false);
             data.json["toMonthDates"][data.idx-1]["isSelected"] = true;
             that.prev_select_obj = data;
+            // that.prev_select.todayDate = data.json.objectDate;
+            console.log("#160", data)
             //  --- select highlight
 
             // --- refresh panel
             console.log("tmp", data);
             var mth = data.json["objectDate"].match(/(.*)-(.*)/);
-            var selectDate = new Date(`${data.json.objectDate}-${data.json["toMonthDates"][data.idx-1]["solarDate"]}\ 00:00:00`).valueOf();
-            var todayDate = new Date(`${data.json.todayDate}\ 00:00:00`).valueOf();
-            var distance = (selectDate - todayDate)/86400000;
-            console.log(distance)
+            // var selectDate = new Date(`${data.json.objectDate}-${data.json["toMonthDates"][data.idx-1]["solarDate"]}\ 00:00:00`).valueOf();
+            // var todayDate = new Date(`${data.json.todayDate}\ 00:00:00`).valueOf();
+            // var distance = (selectDate - todayDate)/86400000;
+            // console.log(distance)
             that.dateJSON = {
                 "year": parseInt(mth[1]),
                 "month": parseInt(mth[2]),
                 "day": data.json["toMonthDates"][data.idx-1]["solarDate"],
-                "isToday": distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"))
+                // "isToday": distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"))
             }
             // --- refresh panel
         },
@@ -177,8 +190,15 @@ export default {
             }
             that._toMonth_["toMonthDates"][that.toDateDayNum-1].isToday = false;
             obj["toMonthDates"][num-1].isToday = true;
-            console.log(obj);
+            console.log("#191", obj.todayDate);
+            that._toMonth_.todayDate = new Date(yyyyMMdd).format("yyyy-MM-dd");
             // that.centerDatesData["toMonthDates"][num+1]["isToday"] = true;
+            that.dateJSON = {
+                "year": parseInt(new Date(yyyyMMdd).format("yyyy")),
+                "month": parseInt(new Date(yyyyMMdd).format("MM")),
+                "day": num,
+                // "isToday": distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"))
+            }
         }
     },
     data () {
@@ -216,11 +236,18 @@ export default {
         var now = now_.format("yyyy-MM")
         that.toDateDayNum = parseInt(now_.format("dd"));
         that.prevDatesData = that.makeDatesData(that.getTheMonth(now, -1));
-        that.centerDatesData = that._toMonth_ = that.makeDatesData(that.getTheMonth(now));
+        that.centerDatesData = that._toMonth_ =  that.makeDatesData(that.getTheMonth(now));
+        that.prev_select_obj ={
+            "idx": parseInt(now_.format("dd")),
+            "json": that.makeDatesData(that.getTheMonth(now))
+        }
         that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1));
         console.log(that.makeDatesData(that.getTheMonth(now, -1)), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1)))
         console.log("7899879", that.getTheMonth(now, -1))
-        that.forceUpdateToday("2019-06-1")
+        that.forceUpdateToday(now_.format("yyyy-MM-dd")) // 初始化设置今日时间
+        setTimeout(function(){
+            that.forceUpdateToday("2019-8-8")
+        },500)
     },
     mounted () {
     }

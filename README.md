@@ -1,5 +1,4 @@
 # 日历便笺  
-<style>body{font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', "Microsoft Yahei", sans-serif;}</style>
 【webpack + VueJS 练习】
 一个本地应用程序，可以查看公历和农历以及记录当日便笺。  
 ### 截图  
