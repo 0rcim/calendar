@@ -61,12 +61,12 @@ export default {
         isToday () {
             console.log("#62", that._toMonth_, that.prev_select_obj)
             // return "今天";
-            var mth = that.prev_select_obj.json["objectDate"].match(/(.*)-(.*)/);
-            var selectDate = that.prev_select_obj !== null ? new Date(`${that.prev_select_obj.json.objectDate}-${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}\ 00:00:00`).valueOf():0;
+            var mth = that.prev_select_obj.json["objectDate"].match(/(.*)\/(.*)/);
+            var selectDate = that.prev_select_obj !== null ? new Date(`${that.prev_select_obj.json.objectDate}/${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}\ 00:00:00`).valueOf():0;
             var todayDate = that.prev_select_obj !== null ? new Date(`${that._toMonth_.todayDate}\ 00:00:00`).valueOf():0;
             var distance = (selectDate - todayDate)/86400000;
-            console.log("#68", `${that.prev_select_obj.json.objectDate}-${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}`, `${that._toMonth_.todayDate}`)
-            console.log("#69", distance)
+            // console.log("#68", `${that.prev_select_obj.json.objectDate}-${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}`, `${that._toMonth_.todayDate}`)
+            // console.log("#69", distance)
             return distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"));
         }
     },
@@ -93,10 +93,10 @@ export default {
             var now_year = parseInt(now.format("yyyy"));
             var now_month = parseInt(now.format("MM"))
             var now_day = parseInt(now.format("dd"));
-            var tar_year = yyyyMM.replace(/(.*)-(.*)/, "$1");
-            var tar_month = yyyyMM.replace(/(.*)-(.*)/, "$2");
+            var tar_year = yyyyMM.replace(/(.*)\/(.*)/, "$1");
+            var tar_month = yyyyMM.replace(/(.*)\/(.*)/, "$2");
             var isTodayTip = now_year == parseInt(tar_year) && now_month === parseInt(tar_month);
-            var frontSpace = new Date(`${tar_year}-${tar_month}`+"-01").getDay() - 1; // 日历当月月份前空天数
+            var frontSpace = new Date(`${tar_year}/${tar_month}`+"-01").getDay() - 1; // 日历当月月份前空天数
             var getMonthDayNum = function (_yyyy, _MM) {
                 var d = new Date(_yyyy, _MM, 0);
                 return d.getDate();
@@ -121,22 +121,25 @@ export default {
                 tMDs[i] = conributeToMonthDates(tar_year, tar_month, i+1);
             };
             return {
-                "todayDate": now.format("yyyy-MM-dd"),
+                "todayDate": now.format("yyyy/MM/dd"),
                 "objectDate": yyyyMM,
                 "toMonthFrontSpace": frontSpace,
                 "toMonthDates": tMDs
             };
         },
         getTheMonth (theDate, distance=0) {
-            var theYear = parseInt(theDate.replace(/(.*)-(.*)/, "$1")),
-                theMonth = parseInt(theDate.replace(/(.*)-(.*)/, "$2"));
+            var theYear = parseInt(theDate.replace(/(.*)\/(.*)/, "$1")),
+                theMonth = parseInt(theDate.replace(/(.*)\/(.*)/, "$2"));
+            // var theYear = theDate.split("-")[0],
+            //     theMonth = theDate.split("-")[1];
             var tot = theYear*12 + theMonth + distance;
             var cmp_year = 0, cmp_month = 0;
 
             var cmp_year = Math.floor(tot/12),
                 cmp_month = tot%12;
             // console.log(new Date(`${cmp_year}-${cmp_month}`).format("yyyy-MM-01"));
-            return new Date(`${cmp_year}-${cmp_month}`).format("yyyy-MM");
+            // console.log("#133", new Date(`${cmp_year}/${cmp_month}/1\ 00:00:00`))
+            return new Date(`${cmp_year}/${cmp_month}/1\ 00:00:00`).format("yyyy/MM");
         },
         // setHeader (obj) {
         //     // var mth = that.dateData["todayDate"].match(/(.*)-(.*)-(.*)/);
@@ -163,7 +166,7 @@ export default {
 
             // --- refresh panel
             console.log("tmp", data);
-            var mth = data.json["objectDate"].match(/(.*)-(.*)/);
+            var mth = data.json["objectDate"].match(/(.*)\/(.*)/);
             // var selectDate = new Date(`${data.json.objectDate}-${data.json["toMonthDates"][data.idx-1]["solarDate"]}\ 00:00:00`).valueOf();
             // var todayDate = new Date(`${data.json.todayDate}\ 00:00:00`).valueOf();
             // var distance = (selectDate - todayDate)/86400000;
@@ -177,7 +180,7 @@ export default {
             // --- refresh panel
         },
         forceUpdateToday (yyyyMMdd) {
-            var index = new Date(yyyyMMdd).format("yyyy-MM");
+            var index = new Date(yyyyMMdd).format("yyyy/MM");
             var num = parseInt(new Date(yyyyMMdd).format("dd"));
             var range = {
                 "prevDatesData": that.prevDatesData.objectDate,
@@ -191,7 +194,7 @@ export default {
             that._toMonth_["toMonthDates"][that.toDateDayNum-1].isToday = false;
             obj["toMonthDates"][num-1].isToday = true;
             console.log("#191", obj.todayDate);
-            that._toMonth_.todayDate = new Date(yyyyMMdd).format("yyyy-MM-dd");
+            that._toMonth_.todayDate = new Date(yyyyMMdd).format("yyyy/MM/dd");
             // that.centerDatesData["toMonthDates"][num+1]["isToday"] = true;
             that.dateJSON = {
                 "year": parseInt(new Date(yyyyMMdd).format("yyyy")),
@@ -233,8 +236,9 @@ export default {
     created () {
         that = this;
         var now_ = new Date();
-        var now = now_.format("yyyy-MM")
+        var now = now_.format("yyyy/MM")
         that.toDateDayNum = parseInt(now_.format("dd"));
+        console.log("#237", that.getTheMonth(now, -1))
         that.prevDatesData = that.makeDatesData(that.getTheMonth(now, -1));
         that.centerDatesData = that._toMonth_ =  that.makeDatesData(that.getTheMonth(now));
         that.prev_select_obj ={
@@ -244,10 +248,10 @@ export default {
         that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1));
         console.log(that.makeDatesData(that.getTheMonth(now, -1)), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1)))
         console.log("7899879", that.getTheMonth(now, -1))
-        that.forceUpdateToday(now_.format("yyyy-MM-dd")) // 初始化设置今日时间
-        setTimeout(function(){
-            that.forceUpdateToday("2019-8-8")
-        },500)
+        that.forceUpdateToday(now_.format("yyyy/MM/dd")) // 初始化设置今日时间
+        // setTimeout(function(){
+        //     that.forceUpdateToday("2019-8-8") //测试
+        // },500)
     },
     mounted () {
     }

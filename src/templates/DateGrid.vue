@@ -91,7 +91,7 @@ export default {
     display: flex; align-items: flex-start; justify-content: center;
 }
 .lunar-date span{
-    font-size: 5px; -webkit-text-size-adjust: none;
+    font-size: 10px; -webkit-text-size-adjust: none;
     color: #999;
 }
 @media only screen and (min-width: 512px) {
