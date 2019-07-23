@@ -3,9 +3,7 @@
     <div class="date-grid" :class="{'isToday': isToday}" @click="selected">
         <div class="grid-bg" v-if="(isToday || isSelected || hasNotes)">
             <span class="todayHighLight" v-if="isToday"></span>
-            <transition name="fade" :duration="400">
-                <span class="otherHighLight" v-if="isSelected"></span>
-            </transition>
+            <span class="otherHighLight" v-if="isSelected"></span>
             <span class="noteTip" :class="{'active': isToday}" v-if="hasNotes">
                 <span></span>
             </span>

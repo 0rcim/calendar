@@ -25,23 +25,25 @@
         </transition>
         <cale-header :month="dateJSON.month" :day="dateJSON.day" :year="dateJSON.year" :isToday="isToday"></cale-header>
         <week-banner :arr="week_order"></week-banner>
-        <div class="slide-container">
-            <div class="slide-outer">
-                <div class="slide-item" style="background-color: purple;">
+        <chevron-btn :position="'left'" :chevronShow="left_show" @shown="left_fn" @hidden="left_fn_" @slideMonth="gotoPrevMonth"></chevron-btn>
+        <div class="slide-container" :class="{'page0': page0, 'page2': page2}">
+            <div class="slide-outer" :class="{'short': isShort, 'tall': !isShort}">
+                <div class="slide-item">
                     <!-- prev month -->
                     <dates-table :datesData="prevDatesData" @selected="selected"></dates-table>
                 </div>
-                <div class="slide-item" style="background-color: #fff;">
+                <div class="slide-item">
                     <!-- this month -->
                     <dates-table :datesData="centerDatesData" @selected="selected"></dates-table>
                 </div>
-                <div class="slide-item" style="background-color: cornflowerblue;">
+                <div class="slide-item">
                     <!-- next month -->
                     <dates-table :datesData="nextDatesData" @selected="selected"></dates-table>
                 </div>
             </div>
         </div>
         <!-- body -->
+        <chevron-btn :position="'right'" :chevronShow="right_show" @shown="right_fn" @hidden="right_fn_" @slideMonth="gotoNextMonth"></chevron-btn>
     </div>
 </template>
 <script>
@@ -52,22 +54,21 @@ import touchRipple from "./TouchRipple.vue";
 import caleHeader from "./CaleHeader.vue";
 import weekBanner from "./WeekBanner.vue";
 import datesTable from "./DatesTable.vue";
+import chevronBtn from "./chevronButton.vue";
 var that = null;
 export default {
     "name": "calendarApp",
-    // "components": { mdIco , touchRipple , weekBanner, datesTable , caleDate, calePanel },
-    "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader },
+    "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader , chevronBtn },
     "computed": {
         isToday () {
-            console.log("#62", that._toMonth_, that.prev_select_obj)
-            // return "今天";
             var mth = that.prev_select_obj.json["objectDate"].match(/(.*)\/(.*)/);
             var selectDate = that.prev_select_obj !== null ? new Date(`${that.prev_select_obj.json.objectDate}/${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}\ 00:00:00`).valueOf():0;
             var todayDate = that.prev_select_obj !== null ? new Date(`${that._toMonth_.todayDate}\ 00:00:00`).valueOf():0;
             var distance = (selectDate - todayDate)/86400000;
-            // console.log("#68", `${that.prev_select_obj.json.objectDate}-${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}`, `${that._toMonth_.todayDate}`)
-            // console.log("#69", distance)
             return distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"));
+        },
+        isShort () {
+            return that.centerDatesGridsNum <= 35;
         }
     },
     "methods": {
@@ -80,14 +81,6 @@ export default {
             that.menuLeave = !that.menuLeave;
             that.navIsShow = true;
         },
-        getMonthDatesData () {
-            var template = {
-
-            }
-        },
-        forceSetUpdateTodayNum (data) {
-            // this.$refs.calePanel.setTodayGrid(data)
-        },
         makeDatesData (yyyyMM) {
             var now = new Date();
             var now_year = parseInt(now.format("yyyy"));
@@ -96,12 +89,12 @@ export default {
             var tar_year = yyyyMM.replace(/(.*)\/(.*)/, "$1");
             var tar_month = yyyyMM.replace(/(.*)\/(.*)/, "$2");
             var isTodayTip = now_year == parseInt(tar_year) && now_month === parseInt(tar_month);
-            var frontSpace = new Date(`${tar_year}/${tar_month}`+"-01").getDay() - 1; // 日历当月月份前空天数
+            var weekNum = new Date(`${tar_year}/${tar_month}`+"/01").getDay();
+            var frontSpace = weekNum === 0 ? 6 : weekNum - 1; // 日历当月月份前空天数
             var getMonthDayNum = function (_yyyy, _MM) {
                 var d = new Date(_yyyy, _MM, 0);
                 return d.getDate();
             };
-            // console.log(tar_year, tar_month)
             var conributeToMonthDates = function (sy, sm, sd) {
                 var lds = utils.sloarToLunar(sy, sm, sd);
                 var tl = {
@@ -115,7 +108,6 @@ export default {
                 return tl;
             };
             var day_num = getMonthDayNum(tar_year, tar_month);
-            // console.log(day_num);
             var tMDs = [];
             for(var i=0; i<day_num; i++){
                 tMDs[i] = conributeToMonthDates(tar_year, tar_month, i+1);
@@ -130,52 +122,29 @@ export default {
         getTheMonth (theDate, distance=0) {
             var theYear = parseInt(theDate.replace(/(.*)\/(.*)/, "$1")),
                 theMonth = parseInt(theDate.replace(/(.*)\/(.*)/, "$2"));
-            // var theYear = theDate.split("-")[0],
-            //     theMonth = theDate.split("-")[1];
             var tot = theYear*12 + theMonth + distance;
             var cmp_year = 0, cmp_month = 0;
 
-            var cmp_year = Math.floor(tot/12),
-                cmp_month = tot%12;
-            // console.log(new Date(`${cmp_year}-${cmp_month}`).format("yyyy-MM-01"));
-            // console.log("#133", new Date(`${cmp_year}/${cmp_month}/1\ 00:00:00`))
+            var cmp_year = Math.floor((tot-1)/12),
+                cmp_month = (tot%12+11)%12+1;
             return new Date(`${cmp_year}/${cmp_month}/1\ 00:00:00`).format("yyyy/MM");
         },
-        // setHeader (obj) {
-        //     // var mth = that.dateData["todayDate"].match(/(.*)-(.*)-(.*)/);
-        //     var o_year = obj.year;
-        //     var o_month = obj.month;
-        //     var o_day = obj.day;
-        //     var distance = obj.distance;
-        //     that.dateJSON = {
-        //         "year": "2019",
-        //         "month": "7",
-        //         "day": "31",
-        //         "isToday": distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"))
-        //     }
-        // },
         selected (data) {
             // --- select highlight
-            console.log("#154", data)
+            // console.log("#154", data)
             that.prev_select_obj !== null && (that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["isSelected"] = false);
             data.json["toMonthDates"][data.idx-1]["isSelected"] = true;
             that.prev_select_obj = data;
-            // that.prev_select.todayDate = data.json.objectDate;
-            console.log("#160", data)
+            // console.log("#160", data)
             //  --- select highlight
 
             // --- refresh panel
-            console.log("tmp", data);
+            // console.log("tmp", data);
             var mth = data.json["objectDate"].match(/(.*)\/(.*)/);
-            // var selectDate = new Date(`${data.json.objectDate}-${data.json["toMonthDates"][data.idx-1]["solarDate"]}\ 00:00:00`).valueOf();
-            // var todayDate = new Date(`${data.json.todayDate}\ 00:00:00`).valueOf();
-            // var distance = (selectDate - todayDate)/86400000;
-            // console.log(distance)
             that.dateJSON = {
                 "year": parseInt(mth[1]),
                 "month": parseInt(mth[2]),
                 "day": data.json["toMonthDates"][data.idx-1]["solarDate"],
-                // "isToday": distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"))
             }
             // --- refresh panel
         },
@@ -193,15 +162,94 @@ export default {
             }
             that._toMonth_["toMonthDates"][that.toDateDayNum-1].isToday = false;
             obj["toMonthDates"][num-1].isToday = true;
-            console.log("#191", obj.todayDate);
+            // console.log("#191", obj.todayDate);
             that._toMonth_.todayDate = new Date(yyyyMMdd).format("yyyy/MM/dd");
-            // that.centerDatesData["toMonthDates"][num+1]["isToday"] = true;
             that.dateJSON = {
                 "year": parseInt(new Date(yyyyMMdd).format("yyyy")),
                 "month": parseInt(new Date(yyyyMMdd).format("MM")),
-                "day": num,
-                // "isToday": distance === 0 ? "今天" : (distance < 0 ? ( distance === -1 ? "昨天" : Math.abs(distance) + "天前") : ( distance === 1 ? "明天" : Math.abs(distance) + "天后"))
+                "day": num
             }
+        },
+        hideShowBoth (bool) {
+            this.left_show = bool;
+            this.right_show = bool;
+        },
+        left_fn (data) {
+            clearTimeout(that.timer);
+            that.hideShowBoth(true);
+        },
+        left_fn_ (data) {
+            clearTimeout(that.timer);
+            that.timer = setTimeout(function () {
+                that.hideShowBoth(false);
+                clearTimeout(that.timer);
+            }, 2000);
+        },
+        right_fn (data) {
+            clearTimeout(that.timer);
+            that.hideShowBoth(true);
+        },
+        right_fn_ (data) {
+            clearTimeout(that.timer);
+            that.timer = setTimeout(function () {
+                that.hideShowBoth(false);
+                clearTimeout(that.timer);
+            }, 2000);
+        },
+        gotoPrevMonth (data) {
+            // console.log("上月");
+            that.page0 = true;
+            that.page2 = false;
+            that.centerDatesGridsNum = that.prevDatesData.toMonthDates.length + that.prevDatesData.toMonthFrontSpace;
+            clearTimeout(that.slideTimer);
+            that.slideTimer = setTimeout(function () {
+                that.page0 = false;
+                that.page2 = false;
+                var prevMonth = that.getTheMonth(new Date(that.display_yyyyMMdd).format("yyyy/MM"), -1);
+                that.set3pagesDates(prevMonth);
+                // console.log("prevMonth", prevMonth)
+                var selectFirstDay = prevMonth == that._toMonth_.todayDate ? new Date(that._toMonth_.todayDate).format("yyyy/MM") : "01";
+                that.display_yyyyMMdd = `${prevMonth}/${selectFirstDay}`;
+                that.prev_select_obj.json = that.centerDatesData;
+                if(prevMonth == new Date(that._toMonth_.todayDate).format("yyyy/MM")) {
+                    that.prev_select_obj.json.toMonthDates[0].isSelected = false;
+                    that.prev_select_obj.idx = parseInt(new Date(that._toMonth_.todayDate).format("dd"));
+                }else{
+                    that.prev_select_obj.idx = 1;
+                }
+                that.selected(that.prev_select_obj);
+                clearTimeout(that.slideTimer);
+            }, 400);
+        },
+        gotoNextMonth (data) {
+            // console.log("下月");
+            that.page0 = false;
+            that.page2 = true;
+            that.centerDatesGridsNum = that.nextDatesData.toMonthDates.length + that.nextDatesData.toMonthFrontSpace;
+            clearTimeout(that.slideTimer);
+            that.slideTimer = setTimeout(function () {
+                that.page0 = false;
+                that.page2 = false;
+                var nextMonth = that.getTheMonth(new Date(that.display_yyyyMMdd).format("yyyy/MM"), 1);
+                that.set3pagesDates(nextMonth);
+                var selectFirstDay = nextMonth == that._toMonth_.todayDate ? new Date(that._toMonth_.todayDate).format("yyyy/MM") : "01";
+                that.display_yyyyMMdd = `${nextMonth}/${selectFirstDay}`;
+                that.prev_select_obj.json = that.centerDatesData;
+                if(nextMonth == new Date(that._toMonth_.todayDate).format("yyyy/MM")) {
+                    that.prev_select_obj.json.toMonthDates[0].isSelected = false;
+                    that.prev_select_obj.idx = parseInt(new Date(that._toMonth_.todayDate).format("dd"));
+                }else{
+                    that.prev_select_obj.idx = 1;
+                }
+                that.selected(that.prev_select_obj);
+                clearTimeout(that.slideTimer);
+            }, 400);
+        },
+        set3pagesDates (center_yyyyMM_Is) {
+            // console.log("#273", center_yyyyMM_Is);
+            that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1));
+            that.centerDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is));
+            that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1));
         }
     },
     data () {
@@ -227,10 +275,12 @@ export default {
                 "day": "31",
                 "isToday": "今天"
             },
-            "forceUpdateTodayNum": {
-                "force": false,
-                "num": -1
-            }
+            "left_show": true,
+            "right_show": true,
+            "page0": false,
+            "page2": false,
+            "display_yyyyMMdd": "",
+            "centerDatesGridsNum": 0 
         }
     },
     created () {
@@ -238,7 +288,7 @@ export default {
         var now_ = new Date();
         var now = now_.format("yyyy/MM")
         that.toDateDayNum = parseInt(now_.format("dd"));
-        console.log("#237", that.getTheMonth(now, -1))
+        // console.log("#237", that.getTheMonth(now, -1))
         that.prevDatesData = that.makeDatesData(that.getTheMonth(now, -1));
         that.centerDatesData = that._toMonth_ =  that.makeDatesData(that.getTheMonth(now));
         that.prev_select_obj ={
@@ -246,12 +296,17 @@ export default {
             "json": that.makeDatesData(that.getTheMonth(now))
         }
         that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1));
-        console.log(that.makeDatesData(that.getTheMonth(now, -1)), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1)))
-        console.log("7899879", that.getTheMonth(now, -1))
+        // console.log(that.makeDatesData(that.getTheMonth(now, -1)), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1)))
         that.forceUpdateToday(now_.format("yyyy/MM/dd")) // 初始化设置今日时间
+        that.display_yyyyMMdd = now_.format("yyyy/MM/dd");
+        // that.forceUpdateToday("2019/7/31")
         // setTimeout(function(){
         //     that.forceUpdateToday("2019-8-8") //测试
         // },500)
+        setTimeout(function () {
+            that.left_show = false;
+            that.right_show = false;
+        }, 1000)
     },
     mounted () {
     }
@@ -266,7 +321,7 @@ export default {
     max-width: 420px; min-width: 252px;
     box-shadow: 0 2px 4px 0 rgba(14, 30, 37, .16);
     background-color: #fff;
-    /* overflow: hidden; */
+    overflow: hidden;
 }
 .menu-button{
     position: absolute;
@@ -275,7 +330,7 @@ export default {
     padding-right: .5rem;
 }
 .nav{
-    position: absolute; z-index: 2;
+    position: absolute; z-index: 3;
     top: 0; left: 0;
     height: 100%; width: 100%;
     background-color: none;
@@ -293,16 +348,44 @@ export default {
 }
 .slide-container{
     width:100%; height: auto;
-    /* transform: translateX(100%) */
+    /* overflow: hidden; */
+    /* 0 */
+    /* transform: translateX(100%); */ 
+    /* 2 */
+    /* transform: translateX(-100%); */
+}
+.slide-container.page0{
+    transition: transform 400ms;
+    transform: translateX(100%);
+}
+.slide-container.page2{
+    transition: transform 400ms;
+    transform: translateX(-100%);
 }
 .slide-outer{
-    width: 300%; height: auto;
+    width: 300%; height: 423px;
+    /* 423 / 498 px */
     display: flex; flex-wrap: nowrap;
     margin-left: -100%;
+    transition: height 200ms ease-in-out;
+}
+.slide-outer.short{
+    height: 423px;
+}
+.slide-outer.tall{
+    height: 498px;
+}
+.slide-outer .slide-item:not(:nth-child(2)){
+    pointer-events: none;
+    opacity: 0;
+}
+.slide-container.page0 .slide-outer .slide-item:not(:nth-child(2)), .slide-container.page2 .slide-outer .slide-item:not(:nth-child(2)){
+    opacity: 1;
 }
 .slide-item{
     min-height: 450px;
     width: 100%;
+    transition: opacity 100ms;
 }
 </style>
 
