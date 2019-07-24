@@ -53,10 +53,16 @@
 </template>
 <script>
 import utils from "../utils";
+import { festivals } from "../server/data/festivalsData";
 utils.dateFormat();
-console.log(utils.sloarToLunar(2017, 6, 24));
-console.log(utils.getSolarTerm(2020, 9, 22));
-console.log(utils.getSolarTerm(2019, 9, 23));
+// console.log(utils.sloarToLunar(2017, 6, 24));
+// console.log(utils.getSolarTerm(2020, 9, 22));
+// console.log(utils.getSolarTerm(2019, 9, 23));
+// -----
+// console.log(utils.specialResolveSD("2第4个Thu.", 2019))
+// console.log(utils.getChuXi(1966))
+// console.log(utils.getHanShi(1996))
+// console.log(utils.getYearsSolarTerm(2019, "小暑"))
 import mdIco from "./MdIco.vue";
 import touchRipple from "./TouchRipple.vue";
 import caleHeader from "./CaleHeader.vue";
@@ -107,7 +113,7 @@ export default {
                 var lds = utils.sloarToLunar(sy, sm, sd);
                 var tl = {
                     "solarDate": sd,
-                    "lunarDate": lds.lunarDay,
+                    "lunarDate": that.returnBottomLabel(sy, sm, sd, lds.lunarMonth, lds.lunarDay),
                     "lunarMonth": lds.lunarMonth,
                     "isToday": sd === now_day && isTodayTip,
                     "isSelected": false,
@@ -176,6 +182,45 @@ export default {
                 "year": parseInt(new Date(yyyyMMdd).format("yyyy")),
                 "month": parseInt(new Date(yyyyMMdd).format("MM")),
                 "day": num
+            }
+        },
+        returnBottomLabel (sy, sm, sd, lm, ld) {
+            let int_y = parseInt(sy), int_m = parseInt(sm);
+            // console.log("#194", lm, ld)
+            // return ld === '初一' ? lm + '月' : ld;
+            if(festivals["important"]["ld"][lm] && festivals["important"]["ld"][lm][ld] && festivals["important"]["ld"][lm][ld].length < 5){
+                return festivals["important"]["ld"][lm][ld];
+            }else{
+                if(festivals["not-important"]["ld"][lm] && festivals["not-important"]["ld"][lm][ld] && festivals["not-important"]["ld"][lm][ld].length < 5){
+                    return festivals["not-important"]["ld"][lm][ld];
+                }else{
+                    if(festivals["normal"]["ld"][lm] && festivals["normal"]["ld"][lm][ld] && festivals["normal"]["ld"][lm][ld].length < 5){
+                        return festivals["normal"]["ld"][lm][ld];
+                    }else{
+                        if(festivals["important"]["sd"][int_m] && festivals["important"]["sd"][int_m][sd] && festivals["important"]["sd"][int_m][sd].length < 5){
+                            // console.log("#199", festivals["important"]["sd"][int_m][sd]);
+                            return festivals["important"]["sd"][int_m][sd];
+                        }else{
+                            if(ld === "初一"){
+                                return lm + "月"
+                            }else{
+                                if(utils.getSolarTerm(sy, sm, sd)){
+                                    return utils.getSolarTerm(sy, sm, sd)
+                                }else{
+                                    if(festivals["not-important"]["sd"][int_m] && festivals["not-important"]["sd"][int_m][sd] && festivals["not-important"]["sd"][int_m][sd].length < 5){
+                                        return festivals["not-important"]["sd"][int_m][sd];
+                                    }else{
+                                        if(festivals["normal"]["sd"][int_m] && festivals["normal"]["sd"][int_m][sd] && festivals["normal"]["sd"][int_m][sd].length < 5){
+                                            return festivals["normal"]["sd"][int_m][sd];
+                                        }else{
+                                            return ld;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         hideShowBoth (bool) {

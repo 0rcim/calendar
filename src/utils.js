@@ -1,4 +1,5 @@
-module.exports.dateFormat = function () {
+module.exports.dateFormat = dateFormat;
+function dateFormat () {
     Date.prototype.format = function(fmt) { 
         var o = { 
            "M+" : this.getMonth()+1,                 //月份 
@@ -184,7 +185,8 @@ function getDiZhi(ly) {
   if (diZhiKey === 0) diZhiKey = 12;
   return diZhi[diZhiKey - 1]
 }
-module.exports.getSolarTerm = function (yyyy, mm, dd) {
+module.exports.getSolarTerm = getSolarTerm;
+function getSolarTerm (yyyy, mm, dd) {
   mm = mm-1;
   var sTermInfo = [
       0, 21208, 42467, 63836, 
@@ -218,4 +220,59 @@ module.exports.getSolarTerm = function (yyyy, mm, dd) {
       solarTerms = solarTerm[mm*2]
   };
   return solarTerms;
+};
+module.exports.specialResolveSD = function (str, yyyy) {
+  let mth = str.match(/(.*)第(.*)个(.*)\./);
+  let ref = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  let ref_ = [0, 1, 2, 3, 4, 5, 6];
+  let month = parseInt(mth[1]), idx = parseInt(mth[2]), day = ref.indexOf(mth[3]);
+  let firstDayIs = new Date(`${yyyy}/${month}/${1}`).getDay(),
+    MonthDayTotNum = new Date(yyyy, month, 0).getDate(),
+    c = 0, result = 0;
+  for (; result<MonthDayTotNum; result++) {
+    ref_[(firstDayIs+result)%7] === day && c++;
+    if(c===idx) break;
+  }
+  return `${yyyy}/${month}/${result+1}`;
 }
+module.exports.getChuXi = function (yyyy) {
+  var start = new Date(yyyy, 0, 19).valueOf(), end = new Date(yyyy, 1, 20).valueOf();
+  const aday = 86400000;
+  var result = start;
+  for (; result<=end; result+=aday) {
+    var tmpDate = new Date(result);
+    var obj = sloarToLunar(yyyy, tmpDate.getMonth()+1, tmpDate.getDate());
+    if (obj.lunarMonth === "正" && obj.lunarDay === "初一") break;
+  }
+  const ChuXi = new Date(result-aday);
+  return `${yyyy}/${ChuXi.getMonth()+1}/${ChuXi.getDate()}`
+}
+module.exports.getHanShi = function (yyyy) {
+  return getYearsSolarTerm(yyyy, "清明", 1)
+};
+module.exports.getYearsSolarTerm = getYearsSolarTerm;
+function getYearsSolarTerm (yyyy, solarTerm, offset=0) {
+  const info = {
+    "小寒": ["01/05", "06"], "大寒": ["01/19", "21"], "立春": ["02/03", "04"], "雨水": ["02/18", "19"], 
+    "惊蛰": ["03/05", "06"], "春分": ["03/20", "21"], "清明": ["04/04", "06"], "谷雨": ["04/19", "20"], 
+    "立夏": ["05/05", "06"], "小满": ["05/20", "22"], "芒种": ["06/05", "06"], "夏至": ["06/21", "22"], 
+    "小暑": ["07/07", "08"], "大暑": ["07/22", "23"], "立秋": ["08/06", "09"], "处暑": ["08/22", "24"], 
+    "白露": ["09/07", "08"], "秋分": ["09/22", "24"], "寒露": ["10/07", "09"], "霜降": ["10/23", "24"], 
+    "立冬": ["11/07", "08"], "小雪": ["11/22", "23"], "大雪": ["12/07", "08"], "冬至": ["12/21", "23"]
+  };
+  let range = info[solarTerm];
+  if(!range) return;
+  let mth = range[0].match(/(.*)\/(.*)/), m = mth[1]-1;
+  var start = new Date(yyyy, m, mth[2]).valueOf(), end = new Date(yyyy, m, range[1]).valueOf();
+  const aday = 86400000;
+  var result = start;
+  for (; result<=end; result+=aday) {
+    var tmpDate = new Date(result);
+    var obj2 = sloarToLunar(yyyy, tmpDate.getMonth()+1, tmpDate.getDate());
+    console.log(obj2)
+    var obj = getSolarTerm(yyyy, tmpDate.getMonth()+1, tmpDate.getDate());
+    if (obj === solarTerm) break;
+  }
+  const term = new Date(result-aday*offset);
+  return `${yyyy}/${term.getMonth()+1}/${term.getDate()}`
+};
