@@ -62,7 +62,7 @@ import touchRipple from "./TouchRipple.vue";
 import caleHeader from "./CaleHeader.vue";
 import weekBanner from "./WeekBanner.vue";
 import datesTable from "./DatesTable.vue";
-import chevronBtn from "./chevronButton.vue";
+import chevronBtn from "./ChevronButton.vue";
 var that = null;
 export default {
     "name": "calendarApp",
@@ -267,10 +267,6 @@ export default {
         return {
             "navIsShow": false,
             "menuLeave": true,
-            "mdIco": {
-                "cp": "vpn_key",
-                "cr": "4082fc"
-            },
             "week_order": ["一","二","三","四","五","六","日"],
             "prevDatesData": {},
             "centerDatesData": {},
@@ -293,6 +289,9 @@ export default {
             "display_yyyyMMdd": "",
             "centerDatesGridsNum": 0 
         }
+    },
+    beforeCreate () {
+        console.log("creating!")
     },
     created () {
         that = this;

@@ -5,7 +5,11 @@
 ![screen capture](https://www.cnblogs.com/images/cnblogs_com/Orcim/1508992/o_vue-calendar-project.png)
 ### 加载运行
 ``` shell
-# run this project
+# run this app
+npm run app
+```
+``` shell
+# dev this project
 npm run dev
 ```
 ### webpack 打包
