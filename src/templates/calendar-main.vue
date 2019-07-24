@@ -53,10 +53,10 @@
 </template>
 <script>
 import utils from "../utils";
-import data from "../server/data";
 utils.dateFormat();
-console.log(data.festivalData.getSolarTerm(2020, 9, 22));
-console.log(data.festivalData.getSolarTerm(2019, 9, 23));
+console.log(utils.sloarToLunar(2017, 6, 24));
+console.log(utils.getSolarTerm(2020, 9, 22));
+console.log(utils.getSolarTerm(2019, 9, 23));
 import mdIco from "./MdIco.vue";
 import touchRipple from "./TouchRipple.vue";
 import caleHeader from "./CaleHeader.vue";

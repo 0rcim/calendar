@@ -26,6 +26,7 @@ npm run build
   "description": "Webpack + VueJS 练习",
   "main": "index.js",
   "scripts": {
+    "app": "node src\/server\/server.js",
     "dev": "webpack-dev-server --open --hot --mode development",
     "build": "webpack --progress --hide-modules --mode production"
   },

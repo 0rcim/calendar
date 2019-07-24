@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-var str = fs.readFileSync("D:\\Laboratory\\JavaScript_exerc\\EleMall\\codepoints", "utf-8");
+var str = fs.readFileSync(path.resolve(__dirname, "../data/source/codepoints"), "utf-8");
 var or = str.split("\n");
 var param = "codepoints";
 var obj = {};
@@ -8,4 +8,4 @@ for(var x=0, l=or.length; x<l; x++){
     var a = or[x].match(/(.*)\ (.*)/);
     a && (obj[a[1]] = a[2]);
 }
-fs.writeFileSync(path.join(__dirname, "./codepoint.js"), `module.exports.${param}=${JSON.stringify(obj)}`, "utf-8");
+fs.writeFileSync(path.join(__dirname, "./codepoints.js"), `module.exports.${param}=${JSON.stringify(obj)}`, "utf-8");

@@ -4,7 +4,7 @@
 </template>
 <script>
 var that = null;
-import ico_refer from "../server/codepoint";
+import ico_refer from "../server/data/codepoints";
 export default {
     "name": "MdIco",
     "props": ["codepoint", "color"],
