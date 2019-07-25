@@ -8,4 +8,4 @@ for(var x=0, l=or.length; x<l; x++){
     var a = or[x].match(/(.*)\ (.*)/);
     a && (obj[a[1]] = a[2]);
 }
-fs.writeFileSync(path.join(__dirname, "./codepoints.js"), `module.exports.${param}=${JSON.stringify(obj)}`, "utf-8");
+fs.writeFileSync(path.join(__dirname, "../data/codepoints.js"), `module.exports.${param}=${JSON.stringify(obj)}`, "utf-8");

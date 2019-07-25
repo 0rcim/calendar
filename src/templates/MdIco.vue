@@ -1,29 +1,16 @@
 // MD 字体图标
 <template>
-    <i class="md-ico" :codepoint="codepoint" :color="color" :style="icoStyle" v-html="html"></i>
+    <i class="md-ico" :codepoint="codepoint" :style="{'color': color}" v-html="`&\#x${codepoints[codepoint]};`"></i>
 </template>
 <script>
-var that = null;
-import ico_refer from "../server/data/codepoints";
+import { codepoints } from "../server/data/codepoints";
 export default {
     "name": "MdIco",
     "props": ["codepoint", "color"],
-    "computed": {
-        html: function () {
-            var ir = ico_refer.codepoints[that.codepoint];
-            return ir ? `&#x${ir};` : "";
-        },
-        hide: function () {
-            return !!that.html;
-        },
-        icoStyle: function () {
-            return {
-                "color": `${that.color}`
-            }
+    data () {
+        return {
+            "codepoints": codepoints
         }
-    },
-    created () {
-        that = this;
     }
 }
 </script>

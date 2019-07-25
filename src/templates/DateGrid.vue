@@ -1,6 +1,6 @@
 // 日期数字小方格 - new 
 <template>
-    <div class="date-grid" :class="{'isToday': isToday}" @click="selected">
+    <div class="date-grid" :class="{'isToday': isToday}" @click="selected" @dblclick="edit">
         <div class="grid-bg" v-if="(isToday || isSelected || hasNotes)">
             <span class="todayHighLight" v-if="isToday"></span>
             <span class="otherHighLight" v-if="isSelected"></span>
@@ -19,6 +19,9 @@ export default {
     "methods": {
         selected () {
             this.$emit("selected", this.s_txt);
+        },
+        edit () {
+            this.$emit("edit", this.s_txt);
         }
     }
 }
@@ -29,7 +32,7 @@ export default {
     display: flex; flex-wrap: wrap;
     font-size: 1rem;
     height: 75px;
-    min-width: 36px; width: calc(100% / 7);
+    width: calc(100% / 7);
     box-sizing: border-box;
     border: .5px solid #fff; border-top: 0; border-bottom: 0;
     border-radius: .45rem;
@@ -37,6 +40,7 @@ export default {
     background-color: transparent;
     transition: background-color 350ms;
     overflow: hidden;
+    user-select: none;
 }
 .date-grid.isToday .solar-date span, .date-grid.isToday .lunar-date span{color: #fff;}
 .date-grid .grid-bg{

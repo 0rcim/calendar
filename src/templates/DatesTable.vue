@@ -8,6 +8,7 @@
             :isSelected="item.isSelected"
             :hasNotes="item.todayNotes.length != 0"
             @selected="selected" 
+            @edit="edit"
         ></date-grid>
     </div>
 </template>
@@ -27,6 +28,12 @@ export default {
     "methods": {
         selected (data) {
             that.$emit("selected", {
+                "json": this.datesData,
+                "idx": data
+            })
+        },
+        edit (data) {
+            that.$emit("edit", {
                 "json": this.datesData,
                 "idx": data
             })

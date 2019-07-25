@@ -1,60 +1,86 @@
 // 日历主体框架组件
 <template>
-    <div class="app-container">
-        <transition name="bounce">
-            <div class="menu-button" v-if="menuLeave">
-                <touch-ripple :side="1" @event_click="showNav">
-                    <md-ico :codepoint="'menu'" :color="'#ea5245'"></md-ico>
+    <div class="app" :class="{'flip': flip}">
+        <div ref="calendar-object" class="app-container calendar">
+            <transition name="bounce">
+                <div class="menu-button" v-if="menuLeave">
+                    <touch-ripple :side="'right'" @event_click="showNav">
+                        <md-ico :codepoint="'menu'" :color="'#ea5245'"></md-ico>
+                    </touch-ripple>
+                </div>
+            </transition>
+            <transition name="fade">
+                <div class="nav" v-if="navIsShow">
+                    <div class="icon-banner">
+                        <touch-ripple :side="'right'" @event_click="hideNav">
+                            <md-ico :codepoint="'close'" :color="'#ea5245'"></md-ico>
+                        </touch-ripple>
+                        <touch-ripple :side="'left'" :title="'设置'">
+                            <md-ico :codepoint="'more_horiz'" :color="'#ea5245'"></md-ico>
+                        </touch-ripple>
+                        <touch-ripple :side="'left'" :title="'添加今日便笺'">
+                            <md-ico :codepoint="'add'" :color="'#ea5245'"></md-ico>
+                        </touch-ripple>
+                    </div>
+                </div>
+            </transition>
+            <cale-header :month="dateJSON.month" :day="dateJSON.day" :year="dateJSON.year" :isToday="isToday"></cale-header>
+            <week-banner :arr="week_order"></week-banner>
+            <chevron-btn :position="'left'" :chevronShow="left_show" @shown="left_fn" @hidden="left_fn_" @slideMonth="gotoPrevMonth"></chevron-btn>
+            <div class="slide-container" :class="{'page0': page0, 'page2': page2, 'transition': page_transition}">
+                <div class="slide-outer" :class="{'short': isShort, 'tall': !isShort}">
+                    <div class="slide-item">
+                        <!-- prev month -->
+                        <dates-table :datesData="prevDatesData" @selected="selected" @edit="edit"></dates-table>
+                    </div>
+                    <div class="slide-item">
+                        <!-- this month -->
+                        <dates-table :datesData="centerDatesData" @selected="selected" @edit="edit"></dates-table>
+                    </div>
+                    <div class="slide-item">
+                        <!-- next month -->
+                        <dates-table :datesData="nextDatesData" @selected="selected" @edit="edit"></dates-table>
+                    </div>
+                </div>
+            </div>
+            <!-- body -->
+            <chevron-btn :position="'right'" :chevronShow="right_show" @shown="right_fn" @hidden="right_fn_" @slideMonth="gotoNextMonth"></chevron-btn>
+            <div class="backToday">
+                <touch-ripple :side="'right'" @event_click="backToday" :title="'回到今天'">
+                    <md-ico :codepoint="'today'" :color="'#ea5245'"></md-ico>
                 </touch-ripple>
             </div>
-        </transition>
-        <transition name="fade">
-            <div class="nav" v-if="navIsShow">
-                <div class="icon-banner">
-                    <touch-ripple :side="1" @event_click="hideNav">
-                        <md-ico :codepoint="'close'" :color="'#ea5245'"></md-ico>
-                    </touch-ripple>
-                    <touch-ripple :side="0" :title="'设置'">
-                        <md-ico :codepoint="'more_horiz'" :color="'#ea5245'"></md-ico>
-                    </touch-ripple>
-                    <touch-ripple :side="0" :title="'添加今日便笺'">
-                        <md-ico :codepoint="'add'" :color="'#ea5245'"></md-ico>
-                    </touch-ripple>
-                </div>
-            </div>
-        </transition>
-        <cale-header :month="dateJSON.month" :day="dateJSON.day" :year="dateJSON.year" :isToday="isToday"></cale-header>
-        <week-banner :arr="week_order"></week-banner>
-        <chevron-btn :position="'left'" :chevronShow="left_show" @shown="left_fn" @hidden="left_fn_" @slideMonth="gotoPrevMonth"></chevron-btn>
-        <div class="slide-container" :class="{'page0': page0, 'page2': page2, 'transition': page_transition}">
-            <div class="slide-outer" :class="{'short': isShort, 'tall': !isShort}">
-                <div class="slide-item">
-                    <!-- prev month -->
-                    <dates-table :datesData="prevDatesData" @selected="selected"></dates-table>
-                </div>
-                <div class="slide-item">
-                    <!-- this month -->
-                    <dates-table :datesData="centerDatesData" @selected="selected"></dates-table>
-                </div>
-                <div class="slide-item">
-                    <!-- next month -->
-                    <dates-table :datesData="nextDatesData" @selected="selected"></dates-table>
-                </div>
-            </div>
         </div>
-        <!-- body -->
-        <chevron-btn :position="'right'" :chevronShow="right_show" @shown="right_fn" @hidden="right_fn_" @slideMonth="gotoNextMonth"></chevron-btn>
-        <div class="backToday" :title="'回到今天'">
-            <touch-ripple :side="1" @event_click="backToday">
-                <md-ico :codepoint="'today'" :color="'#ea5245'"></md-ico>
-            </touch-ripple>
+        <div class="app-container notepad" :style="{'height': notepadHeight+'px'}">
+            <transition name="fade">
+                <div class="note-body" style="back">
+                    <div class="icon-banner">
+                        <touch-ripple :side="'right'" @event_click="calen" :theme="'green'">
+                            <md-ico :codepoint="'check'" :color="'#41b883'"></md-ico>
+                        </touch-ripple>
+                        <touch-ripple :side="'left'" :title="'上一篇'">
+                            <md-ico :codepoint="'arrow_back'" :color="'#ea5245'"></md-ico>
+                        </touch-ripple>
+                        <touch-ripple :side="'left'" :title="'下一篇'">
+                            <md-ico :codepoint="'arrow_forward'" :color="'#ea5245'"></md-ico>
+                        </touch-ripple>
+                    </div>
+                    <input-area></input-area>
+                    <div class="under-title">
+                        <div class="build-time"><span v-text="buildTime"></span></div>
+                        <div class="tags_options"><span>789789</span></div>
+                        <div style="clear:both;"></div>
+                    </div>
+                </div>
+            </transition>
         </div>
     </div>
 </template>
 <script>
-import utils, { getChuXi, getHanShi } from "../utils";
+import utils, { getChuXi, getHanShi , getComputedStyle } from "../utils";
 import { festivals } from "../server/data/festivalsData";
 utils.dateFormat();
+getComputedStyle();
 // console.log(utils.sloarToLunar(2017, 6, 24));
 // console.log(utils.getSolarTerm(2020, 9, 22));
 // console.log(utils.getSolarTerm(2019, 9, 23));
@@ -69,10 +95,11 @@ import caleHeader from "./CaleHeader.vue";
 import weekBanner from "./WeekBanner.vue";
 import datesTable from "./DatesTable.vue";
 import chevronBtn from "./ChevronButton.vue";
+import inputArea from "./InputArea.vue";
 var that = null;
 export default {
     "name": "calendarApp",
-    "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader , chevronBtn },
+    "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader , chevronBtn ,inputArea },
     "computed": {
         isToday () {
             var mth = that.prev_select_obj.json["objectDate"].match(/(.*)\/(.*)/);
@@ -174,6 +201,29 @@ export default {
                 "day": data.json["toMonthDates"][data.idx-1]["solarDate"],
             }
             // --- refresh panel
+        },
+        edit (data) {
+            console.log(data);
+            clearTimeout(that.edit_timer);
+            that.flip = true;
+            that.left_show = false;
+            that.right_show = false;
+            var timestamp = new Date();
+            that.buildTime = `${timestamp.getHours()}:${timestamp.getMinutes()}`;
+        },
+        calen (data) {
+            console.log(data);
+            clearTimeout(that.edit_timer);
+            that.edit_timer = setTimeout(function(){
+                that.flip = false;
+                clearTimeout(this.timer);
+                this.tiimer = setTimeout(function(){
+                    that.left_show = true;
+                    that.right_show = true;
+                    clearTimeout(this.timer);
+                }, 1200);
+                clearTimeout(that.edit_timer);
+            }, 100);
         },
         forceUpdateToday (yyyyMMdd) {
             var index = new Date(yyyyMMdd).format("yyyy/MM");
@@ -342,6 +392,8 @@ export default {
         },
         set3pagesDates (center_yyyyMM_Is, fn) {
             // console.log("#273", center_yyyyMM_Is);
+            var h = parseFloat(window.getComputedStyle(that.$refs["calendar-object"], "").getPropertyValue("height"));
+            that.notepadHeight = h;
             that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1));
             that.centerDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is));
             that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1));
@@ -367,14 +419,6 @@ export default {
              *  }
              */
             var distanceFromToday = new Date(`${that.prev_select_obj.json.objectDate}/01`) - new Date(`${that._toMonth_.objectDate}/01`);
-            // that.page0 = true;
-            // that.page2 = false;
-            // that.page_transition = false;
-            // that.set3pagesDates(that.getTheMonth(that.prev_select_obj.json.objectDate, 1), function(){
-            //     // that.page0 = false;
-            //     // that.page2 = false;
-            //     // that.page_transition = true;
-            // })
             var today_idx = parseInt(new Date(that._toMonth_.todayDate).format("d"));
             var today_GridsNum = that._toMonth_.toMonthDates.length + that._toMonth_.toMonthFrontSpace;
             if(distanceFromToday===0){ // toMonth
@@ -447,7 +491,9 @@ export default {
             "page2": false,
             "page_transition": true,
             "display_yyyyMMdd": "",
-            "centerDatesGridsNum": 0 
+            "centerDatesGridsNum": 0,
+            "notepadHeight": -1,
+            "flip": true
         }
     },
     beforeCreate () {
@@ -479,19 +525,68 @@ export default {
         }, 1000)
     },
     mounted () {
+        var h = parseFloat(window.getComputedStyle(that.$refs["calendar-object"], "").getPropertyValue("height"));
+        that.notepadHeight = h;
     }
 }
 </script>
 <style>
-.app-container{
+.app{
     position: relative;
-    padding: 12px 20px; 
-    border-radius: 9px; 
+    display: flex; justify-content: center; align-items: center;
     width: 75%; 
     max-width: 420px; min-width: 252px;
+    height: 100%;
+    max-height: 540px;
+    transform: scale(1);
+    perspective: 1920px;
+    -webkit-perspective: 1920px;
+    -moz-perspective: 1920px;
+}
+.app-container{
+    position: absolute; left: 0; top: 0;
+    padding: 12px 20px; 
+    border-radius: 9px; 
     box-shadow: 0 2px 4px 0 rgba(14, 30, 37, .16);
     background-color: #fff;
     overflow: hidden;
+    /* height: calc(100% - 24px); width: calc(100% - 40px); */
+    /* max-height: 540px; */
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    -moz-transform-style: preserve-3d;
+    transition: 1200ms ease-in-out;
+    -webkit-transition: 1200ms ease-in-out;
+    -moz-transition:  1200ms ease-in-out;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+}
+.app-container.calendar{
+    z-index: 2;
+    transform: rotateY(0) scale(1);
+    -webkit-transform: rotateY(0) scale(1);
+    -moz-transform: rotateY(0) scale(1);
+}
+.app.flip .app-container.calendar{
+    transform: rotateY(-180deg) scale(.4);
+    -webkit-transform: rotateY(-180deg) scale(.4);
+    -moz-transform: rotateY(-180deg) scale(.4);
+}
+.app-container.notepad{
+    width: calc(100% - 40px);
+    background-color: #fff;
+    box-shadow: transparent;
+    transform: rotateY(180deg) scale(.4);
+    -webkit-transform: rotateY(180deg) scale(.4);
+    -moz-transform: rotateY(180deg) scale(.4);
+    z-index: 1;
+}
+.app.flip .app-container.notepad{
+    transform: rotateY(0) scale(1);
+    -webkit-transform: rotateY(0) scale(1);
+    -moz-transform: rotateY(0) scale(1);
 }
 .menu-button{
     position: absolute;
@@ -499,7 +594,7 @@ export default {
     width: calc(100% - .5rem); height: 48px;
     padding-right: .5rem;
 }
-.nav{
+.nav, .note-body{
     position: absolute; z-index: 3;
     top: 0; left: 0;
     height: 100%; width: 100%;
@@ -507,14 +602,21 @@ export default {
     background-color: rgba(14, 30, 37, .52);
     transition: opacity 200ms;
 }
+.note-body{
+    background-color: #fff;
+}
 .nav.close{
     opacity: 0;
 }
-.nav > .icon-banner{
+.nav > .icon-banner, .note-body > .icon-banner{
     width: calc(100% - 1rem); height: 48px;
     padding: 0 .5rem;
     background-color: #fff;
     overflow: hidden;
+}
+.note-body > .icon-banner{
+    overflow: initial;
+    position: relative; z-index: 3;
 }
 .slide-container{
     width:100%; height: auto;
@@ -564,6 +666,22 @@ export default {
 }
 .backToday .ico-outer{
     padding: 0;
+}
+.under-title{
+    padding: 5px 1rem;
+    font-size: 1rem;
+}
+.under-title .build-time{
+    color: #bbb;
+    font-size: 14px;
+    letter-spacing: .1rem;
+    float: left;
+}
+.under-title .tags_options{
+    color: #bbb;
+    font-size: 14px;
+    letter-spacing: .1rem;
+    float: right;
 }
 </style>
 
