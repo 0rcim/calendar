@@ -229,11 +229,19 @@ module.exports.specialResolveSD = function (str, yyyy) {
   let firstDayIs = new Date(`${yyyy}/${month}/${1}`).getDay(),
     MonthDayTotNum = new Date(yyyy, month, 0).getDate(),
     c = 0, result = 0;
-  for (; result<MonthDayTotNum; result++) {
-    ref_[(firstDayIs+result)%7] === day && c++;
-    if(c===idx) break;
+  if(isNaN(idx)){
+    var r = 0;
+    for (; result<MonthDayTotNum; result++) {
+      ref_[(firstDayIs+result)%7] === day && (r=result);
+    }
+    return `${yyyy}/${month}/${r+1}`;
+  }else{
+    for (; result<MonthDayTotNum; result++) {
+      ref_[(firstDayIs+result)%7] === day && c++;
+      if(c===idx) break;
+    }
+    return `${yyyy}/${month}/${result+1}`;
   }
-  return `${yyyy}/${month}/${result+1}`;
 }
 module.exports.getChuXi = function (yyyy) {
   var start = new Date(yyyy, 0, 19).valueOf(), end = new Date(yyyy, 1, 20).valueOf();
@@ -268,8 +276,8 @@ function getYearsSolarTerm (yyyy, solarTerm, offset=0) {
   var result = start;
   for (; result<=end; result+=aday) {
     var tmpDate = new Date(result);
-    var obj2 = sloarToLunar(yyyy, tmpDate.getMonth()+1, tmpDate.getDate());
-    console.log(obj2)
+    // var obj2 = sloarToLunar(yyyy, tmpDate.getMonth()+1, tmpDate.getDate());
+    // console.log(obj2)
     var obj = getSolarTerm(yyyy, tmpDate.getMonth()+1, tmpDate.getDate());
     if (obj === solarTerm) break;
   }
