@@ -26,7 +26,7 @@
         <cale-header :month="dateJSON.month" :day="dateJSON.day" :year="dateJSON.year" :isToday="isToday"></cale-header>
         <week-banner :arr="week_order"></week-banner>
         <chevron-btn :position="'left'" :chevronShow="left_show" @shown="left_fn" @hidden="left_fn_" @slideMonth="gotoPrevMonth"></chevron-btn>
-        <div class="slide-container" :class="{'page0': page0, 'page2': page2}">
+        <div class="slide-container" :class="{'page0': page0, 'page2': page2, 'transition': page_transition}">
             <div class="slide-outer" :class="{'short': isShort, 'tall': !isShort}">
                 <div class="slide-item">
                     <!-- prev month -->
@@ -291,11 +291,13 @@ export default {
             // console.log("上月");
             that.page0 = true;
             that.page2 = false;
+            that.page_transition = true;
             that.centerDatesGridsNum = that.prevDatesData.toMonthDates.length + that.prevDatesData.toMonthFrontSpace;
             clearTimeout(that.slideTimer);
             that.slideTimer = setTimeout(function () {
                 that.page0 = false;
                 that.page2 = false;
+                that.page_transition = false;
                 var prevMonth = that.getTheMonth(new Date(that.display_yyyyMMdd).format("yyyy/MM"), -1);
                 that.set3pagesDates(prevMonth);
                 // console.log("prevMonth", prevMonth)
@@ -316,11 +318,13 @@ export default {
             // console.log("下月");
             that.page0 = false;
             that.page2 = true;
+            that.page_transition = true;
             that.centerDatesGridsNum = that.nextDatesData.toMonthDates.length + that.nextDatesData.toMonthFrontSpace;
             clearTimeout(that.slideTimer);
             that.slideTimer = setTimeout(function () {
                 that.page0 = false;
                 that.page2 = false;
+                that.page_transition = false;
                 var nextMonth = that.getTheMonth(new Date(that.display_yyyyMMdd).format("yyyy/MM"), 1);
                 that.set3pagesDates(nextMonth);
                 var selectFirstDay = nextMonth == that._toMonth_.todayDate ? new Date(that._toMonth_.todayDate).format("yyyy/MM") : "01";
@@ -336,14 +340,85 @@ export default {
                 clearTimeout(that.slideTimer);
             }, 400);
         },
-        set3pagesDates (center_yyyyMM_Is) {
+        set3pagesDates (center_yyyyMM_Is, fn) {
             // console.log("#273", center_yyyyMM_Is);
             that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1));
             that.centerDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is));
             that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1));
+            fn && fn();
         },
         backToday () {
-
+            /** that.prev_select_obj
+             * {
+             *  idx: Number
+             *  json: {
+             *      objectDate: "yyyy/MM",
+             *      toMonthDates: <Array>,
+             *      toMonthFrontSpace: Number,
+             *      todayDate: "yyyy/MM/dd"
+             *  }
+             * }
+             */
+            /** that._toMonth_{
+             *      objectDate: "yyyy/MM",
+             *      toMonthDates: <Array>,
+             *      toMonthFrontSpace: Number,
+             *      todayDate: "yyyy/MM/dd"
+             *  }
+             */
+            var distanceFromToday = new Date(`${that.prev_select_obj.json.objectDate}/01`) - new Date(`${that._toMonth_.objectDate}/01`);
+            // that.page0 = true;
+            // that.page2 = false;
+            // that.page_transition = false;
+            // that.set3pagesDates(that.getTheMonth(that.prev_select_obj.json.objectDate, 1), function(){
+            //     // that.page0 = false;
+            //     // that.page2 = false;
+            //     // that.page_transition = true;
+            // })
+            var today_idx = parseInt(new Date(that._toMonth_.todayDate).format("d"));
+            var today_GridsNum = that._toMonth_.toMonthDates.length + that._toMonth_.toMonthFrontSpace;
+            if(distanceFromToday===0){ // toMonth
+                // ---
+            }else if(distanceFromToday < 0){ // previous // 滑至page2
+                that.nextDatesData = that.makeDatesData(that._toMonth_.objectDate);
+                that.page0 = false;
+                that.page2 = true;
+                that.page_transition = true;
+                that.centerDatesGridsNum = today_GridsNum;
+                setTimeout(function(){
+                    that.page0 = false;
+                    that.page2 = false;
+                    that.page_transition = false;
+                    that.set3pagesDates(that._toMonth_.objectDate);
+                    that.display_yyyyMMdd = that._toMonth_.todayDate;
+                    that.prev_select_obj = {
+                        idx: today_idx,
+                        json: that._toMonth_
+                    }
+                    that.selected(that.prev_select_obj);
+                }, 400);
+            }else{ // future // 滑动至page1
+                that.prevDatesData = that.makeDatesData(that._toMonth_.objectDate);
+                that.page0 = true;
+                that.page2 = false;
+                that.page_transition = true;
+                that.centerDatesGridsNum = today_GridsNum;
+                setTimeout(function(){
+                    that.page0 = false;
+                    that.page2 = false;
+                    that.page_transition = false;
+                    that.set3pagesDates(that._toMonth_.objectDate);
+                    that.display_yyyyMMdd = that._toMonth_.todayDate;
+                    that.prev_select_obj = {
+                        idx: today_idx,
+                        json: that._toMonth_
+                    }
+                    that.selected(that.prev_select_obj);
+                }, 400);
+            }
+            console.log(distanceFromToday);
+            console.log(that.prev_select_obj)
+            console.log(that._toMonth_)
         }
     },
     data () {
@@ -370,6 +445,7 @@ export default {
             "right_show": true,
             "page0": false,
             "page2": false,
+            "page_transition": true,
             "display_yyyyMMdd": "",
             "centerDatesGridsNum": 0 
         }
@@ -448,12 +524,13 @@ export default {
     /* 2 */
     /* transform: translateX(-100%); */
 }
-.slide-container.page0{
+.slide-container.transition{
     transition: transform 400ms;
+}
+.slide-container.page0{
     transform: translateX(100%);
 }
 .slide-container.page2{
-    transition: transform 400ms;
     transform: translateX(-100%);
 }
 .slide-outer{
