@@ -64,14 +64,17 @@
                         <touch-ripple :side="'left'" :title="'下一篇'" :disabled="edit_bools.forward_disabled">
                             <md-ico :codepoint="'arrow_forward'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
+                        <touch-ripple :side="'left'" :title="'永久删除此条便笺'" :theme="'red'">
+                            <md-ico :codepoint="'delete_forever'" :color="'#f44336'"></md-ico>
+                        </touch-ripple>
                     </div>
-                    <input-area @writing="writing"></input-area>
+                    <input-area ref="ia" @writing="writing" :title_show="title_show" @titling="titling"></input-area>
                     <div class="under-title">
                         <div class="build-time"><span v-text="buildTime"></span></div>
                         <div class="tags_options"><span><span>这一天</span>的<span>#1</span>便笺</span></div>
                         <div style="clear:both;"></div>
                     </div>
-                    <text-area></text-area>
+                    <text-area ref="ta" @writing="writing" :tip_id="tip_id"></text-area>
                 </div>
             </transition>
         </div>
@@ -125,7 +128,11 @@ export default {
                 }
             }
             return spec;
-        }
+        },
+        // title_show () {
+        //     console.log("A")
+        //     return that.ia_val.length === 0 || that.ta_val.length === 0;
+        // }
     },
     "methods": {
         hideNav () {
@@ -151,22 +158,30 @@ export default {
                 var d = new Date(_yyyy, _MM, 0);
                 return d.getDate();
             };
-            var conributeToMonthDates = function (sy, sm, sd) {
+            var conributeToMonthDates = function (sy, sm, sd, i_) {
                 var lds = utils.sloarToLunar(sy, sm, sd);
+                var todayNotes = [
+                    {
+                        "id": "[2019-07-26]#"+i_,
+                        "title": "....",
+                        "update_time": "09:22",
+                        "content": "yourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\n"
+                    }
+                ]
                 var tl = {
                     "solarDate": sd,
                     "lunarDate": that.returnBottomLabel(sy, sm, sd, lds.lunarMonth, lds.lunarDay),
                     "lunarMonth": lds.lunarMonth,
                     "isToday": sd === now_day && isTodayTip,
                     "isSelected": false,
-                    "todayNotes": [""]
+                    "todayNotes": todayNotes
                 };
                 return tl;
             };
             var day_num = getMonthDayNum(tar_year, tar_month);
             var tMDs = [];
             for(var i=0; i<day_num; i++){
-                tMDs[i] = conributeToMonthDates(tar_year, tar_month, i+1);
+                tMDs[i] = conributeToMonthDates(tar_year, tar_month, i+1, i+1);
             };
             return {
                 "todayDate": now.format("yyyy/MM/dd"),
@@ -205,13 +220,14 @@ export default {
             // --- refresh panel
         },
         edit (data) {
-            if(that.Browser["Edge"] && !that.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
+            that.$refs["notepad-object"].style.visibility = "visible";
+            if(window.Browser["Edge"] && !window.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
                 that.flip = true;
                 setTimeout(function(){
                     // that.edge_hack_notepad = true;
                     that.$refs["app"].innerHTML = "";
                     that.$refs["app"].appendChild(that.$refs["notepad-object"]);
-                }, 1200);
+                }, 600);
             }else{
                 clearTimeout(that.edit_timer);
                 that.flip = true;
@@ -222,17 +238,26 @@ export default {
                 }, 700)
             }
             var timestamp = new Date();
-            that.buildTime = `${timestamp.getHours()}:${timestamp.getMinutes()}`;
+            that.buildTime = timestamp.format("hh:mm");
+            var dayNotes = data.json.toMonthDates[data.idx].todayNotes; // Array
+            that.$refs["ia"].$el.querySelector("input").focus()
+            // console.log(that.$refs["ia"].$el.querySelector("input"))
+            // console.log(that.$refs["ia"])
+            that.$refs["ia"].$el.querySelector("input").value = that.ia_val = dayNotes[0].title;
+            that.title_show = dayNotes[0].title.length === 0;
+            that.$refs["ta"].$el.querySelector("textarea").value = that.ta_val = dayNotes[0].content;
+            that.buildTime = dayNotes[0].update_time;
+            that.tip_id = dayNotes[0].id;
+            console.log(data)
         },
         calen (data) {
-            if(that.Browser["Edge"] && !that.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
+            if(window.Browser["Edge"] && !window.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
                 that.flip = false;
                 setTimeout(function(){
                     // that.edge_hack = true;
                     that.$refs["app"].innerHTML = "";
                     that.$refs["app"].appendChild(that.$refs["calendar-object"]);
-                }, 1200);
-
+                }, 600);
             }else{
                 clearTimeout(that.edit_timer);
                 that.edit_timer = setTimeout(function(){
@@ -241,11 +266,12 @@ export default {
                     this.timer = setTimeout(function(){
                         that.left_show = true;
                         that.right_show = true;
+                        that.$refs["notepad-object"].style.visibility = "hidden";
                         clearTimeout(this.timer);
                     }, 1200);
                     clearTimeout(that.edit_timer);
                 }, 100);
-            }
+            };
             console.log(data);
         },
         forceUpdateToday (yyyyMMdd) {
@@ -487,9 +513,22 @@ export default {
             console.log(that.prev_select_obj)
             console.log(that._toMonth_)
         },
-        writing (val) {
-            that.edit_bools.check_disabled = val.length === 0;
-            that.edit_bools.back_disabled = val.length === 0;
+        titling (e) {
+            var val = e.target.value;
+            that.ia_val = val;
+            that.title_show = val.length === 0;
+            that.edit_bools.check_disabled = that.ta_val.length === 0 && val.length === 0;
+            // console.log(val.length, that.title_show)
+            // that.edit_bools.check_disabled = val.length === 0;
+            // that.edit_bools.back_disabled = val.length === 0;
+        },
+        writing (e) {
+            var val = e.target.value;
+            that.ta_val = val;
+            that.edit_bools.check_disabled = that.ia_val.length === 0 && val.length === 0;
+            // console.log(val)
+            // that.edit_bools.check_disabled = val.length === 0;
+            // that.edit_bools.back_disabled = val.length === 0;
         }
     },
     data () {
@@ -530,7 +569,11 @@ export default {
                 check_disabled: true,
                 back_disabled: true,
                 forward_disabled: true
-            }
+            },
+            title_show: true,
+            tip_id: "",
+            ia_val: "",
+            ta_val: ""
         }
     },
     beforeCreate () {
@@ -564,7 +607,7 @@ export default {
     mounted () {
         var h = parseFloat(window.getComputedStyle(that.$refs["calendar-object"], "").getPropertyValue("height"));
         that.notepadHeight = h;
-        that.Browser = utils.getBroswerType();
+        window.Browser = utils.getBroswerType();
     }
 }
 </script>

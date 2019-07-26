@@ -1,24 +1,19 @@
 <template>
     <div class="input-area">
         <div class="place-holder" v-show="title_show"><span>标题</span></div>
-        <input type="text" @input="writing($event)">
+        <input :ref="ia" type="text" @input="titling($event)">
     </div>
 </template>
 <script>
 export default {
     "name": "inputArea",
-    "props": [],
+    "props": ["title_show", "ia"],
     "methods": {
-        writing (e) {
-            var val = e.target.value;
-            this.title_show = val.length === 0;
-            this.$emit("writing", val)
+        titling (e) {
+            // var val = e.target.value;
+            // this.title_show = val.length === 0;
+            this.$emit("titling", e)
             // console.log(e.target.value)
-        }
-    },
-    data () {
-        return {
-            "title_show": true
         }
     }
 }

@@ -1,22 +1,32 @@
 <template>
     <div class="text-area">
-        <textarea name="notepad" placeholder="Your Notes Here..." @scroll="ta_scroll($event)"></textarea>
-        <div class="bottomTip" :class="{'active': active}"><span>[2019-07-26]#01</span></div>
+        <textarea :ref="ta" name="notepad" placeholder="Your Notes Here..." @scroll="ta_scroll($event)" @input="writing($event)"></textarea>
+        <div class="bottomTip" :class="{'active': active}"><span v-text="tip_id"></span></div>
     </div>
 </template>
 <script>
 export default {
     "name": "textArea",
+    "props": ["ta", "tip_id"],
     "methods": {
         ta_scroll (e) {
             var eleHeight = parseFloat(window.getComputedStyle(e.target, "").getPropertyValue("height"));
-            var isReachedBottom = e.target.scrollTop + eleHeight >= e.target.scrollHeight;
-            this.active = e.target.scrollTop === 0 || isReachedBottom;
+            var isReachedBottom =
+            window.Browser["IE"] ? (
+                Math.ceil(
+                    parseFloat(window.getComputedStyle(this.$refs["ta"], "").getPropertyValue("padding-bottom")) + 
+                    e.target.scrollTop + eleHeight
+                ) === e.target.scrollHeight
+            ) : (e.target.scrollTop + eleHeight >= e.target.scrollHeight);
+            this.active = e.target.scrollTop === 0 || isReachedBottom; // 滚动至底或至顶显示右下角timestamp——id 兼容 IE
+        },
+        writing (e) {
+            this.$emit("writing", e)
         }
     },
     data () {
         return {
-            "active": false
+            "active": true
         }
     }
 }
