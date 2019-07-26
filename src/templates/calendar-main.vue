@@ -240,12 +240,12 @@ export default {
             var timestamp = new Date();
             that.buildTime = timestamp.format("hh:mm");
             var dayNotes = data.json.toMonthDates[data.idx].todayNotes; // Array
-            that.$refs["ia"].$el.querySelector("input").focus()
+            that.ia_ele.focus()
             // console.log(that.$refs["ia"].$el.querySelector("input"))
             // console.log(that.$refs["ia"])
-            that.$refs["ia"].$el.querySelector("input").value = that.ia_val = dayNotes[0].title;
+            that.ia_ele.value = that.ia_val = dayNotes[0].title;
             that.title_show = dayNotes[0].title.length === 0;
-            that.$refs["ta"].$el.querySelector("textarea").value = that.ta_val = dayNotes[0].content;
+            that.ta_ele.value = that.ta_val = dayNotes[0].content;
             that.buildTime = dayNotes[0].update_time;
             that.tip_id = dayNotes[0].id;
             console.log(data)
@@ -272,6 +272,21 @@ export default {
                     clearTimeout(that.edit_timer);
                 }, 100);
             };
+            utils.AjaxRequest.post({
+                "url": "http://localhost:4321/sendNotes",
+                "queryString": utils.joint({
+                    "id": that.tip_id,
+                    "title": that.ia_ele.value,
+                    "content": that.ta_ele.value,
+                    "update_time": that.buildTime
+                }),
+                "onSuccess": function (req) {
+                    console.log(req.responseText)
+                },
+                "onError": function (req) {
+                    console.log(req.responseText)
+                }
+            })
             console.log(data);
         },
         forceUpdateToday (yyyyMMdd) {
@@ -608,6 +623,8 @@ export default {
         var h = parseFloat(window.getComputedStyle(that.$refs["calendar-object"], "").getPropertyValue("height"));
         that.notepadHeight = h;
         window.Browser = utils.getBroswerType();
+        that.ia_ele = that.$refs["ia"].$el.querySelector("input");
+        that.ta_ele = that.$refs["ta"].$el.querySelector("textarea");
     }
 }
 </script>
