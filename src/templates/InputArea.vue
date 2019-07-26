@@ -12,6 +12,7 @@ export default {
         writing (e) {
             var val = e.target.value;
             this.title_show = val.length === 0;
+            this.$emit("writing", val)
             // console.log(e.target.value)
         }
     },
@@ -46,7 +47,18 @@ export default {
     font-size: 22px; font-weight: bold;
     box-sizing: border-box; outline-color: transparent;
     border: 0;
+    flood-color: #fdf1f0;
     caret-color: #ea5245;
+}
+.input-area input::-ms-clear, .input-area input::-ms-reveal{display: none}
+::selection {   
+    background: #fdf1f0;
+}
+::-moz-selection {   
+    background: #fdf1f0;
+}
+::-webkit-selection {   
+    background: #fdf1f0;
 }
 </style>
 

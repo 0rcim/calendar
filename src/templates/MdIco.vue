@@ -3,13 +3,12 @@
     <i class="md-ico" :codepoint="codepoint" :style="{'color': color}" v-html="`&\#x${codepoints[codepoint]};`"></i>
 </template>
 <script>
-import { codepoints } from "../server/data/codepoints";
 export default {
     "name": "MdIco",
     "props": ["codepoint", "color"],
     data () {
         return {
-            "codepoints": codepoints
+            "codepoints": window.codepoints
         }
     }
 }

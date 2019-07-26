@@ -1,7 +1,7 @@
 // 日历主体框架组件
 <template>
-    <div class="app" :class="{'flip': flip}">
-        <div ref="calendar-object" class="app-container calendar">
+    <div class="app" ref="app" :class="{'flip': flip}">
+        <div ref="calendar-object" class="app-container calendar" :class="{'edge': edge_hack_calendar}" v-show="Edge_Calendar_Show">
             <transition name="bounce">
                 <div class="menu-button" v-if="menuLeave">
                     <touch-ripple :side="'right'" @event_click="showNav">
@@ -51,36 +51,37 @@
                 </touch-ripple>
             </div>
         </div>
-        <div class="app-container notepad" :style="{'height': notepadHeight+'px'}">
+        <div ref="notepad-object" class="app-container notepad"  :class="{'edge': edge_hack_notepad}" v-show="Edge_Notepad_Show" :style="{'height': notepadHeight+'px'}">
             <transition name="fade">
                 <div class="note-body" style="back">
                     <div class="icon-banner">
-                        <touch-ripple :side="'right'" @event_click="calen" :theme="'green'">
+                        <touch-ripple :side="'right'" @event_click="calen" :theme="'green'" :disabled="edit_bools.check_disabled">
                             <md-ico :codepoint="'check'" :color="'#41b883'"></md-ico>
                         </touch-ripple>
-                        <touch-ripple :side="'left'" :title="'上一篇'">
+                        <touch-ripple :side="'left'" :title="'上一篇'" :disabled="edit_bools.back_disabled">
                             <md-ico :codepoint="'arrow_back'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
-                        <touch-ripple :side="'left'" :title="'下一篇'">
+                        <touch-ripple :side="'left'" :title="'下一篇'" :disabled="edit_bools.forward_disabled">
                             <md-ico :codepoint="'arrow_forward'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
                     </div>
-                    <input-area></input-area>
+                    <input-area @writing="writing"></input-area>
                     <div class="under-title">
                         <div class="build-time"><span v-text="buildTime"></span></div>
-                        <div class="tags_options"><span>789789</span></div>
+                        <div class="tags_options"><span><span>这一天</span>的<span>#1</span>便笺</span></div>
                         <div style="clear:both;"></div>
                     </div>
+                    <text-area></text-area>
                 </div>
             </transition>
         </div>
     </div>
 </template>
 <script>
-import utils, { getChuXi, getHanShi , getComputedStyle } from "../utils";
-import { festivals } from "../server/data/festivalsData";
+import utils from "../utils";
+import { festivals } from "../../server/data/festivalsData";
 utils.dateFormat();
-getComputedStyle();
+utils.getComputedStyle();
 // console.log(utils.sloarToLunar(2017, 6, 24));
 // console.log(utils.getSolarTerm(2020, 9, 22));
 // console.log(utils.getSolarTerm(2019, 9, 23));
@@ -96,10 +97,11 @@ import weekBanner from "./WeekBanner.vue";
 import datesTable from "./DatesTable.vue";
 import chevronBtn from "./ChevronButton.vue";
 import inputArea from "./InputArea.vue";
+import textArea from "./textArea.vue";
 var that = null;
 export default {
     "name": "calendarApp",
-    "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader , chevronBtn ,inputArea },
+    "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader , chevronBtn , inputArea , textArea },
     "computed": {
         isToday () {
             var mth = that.prev_select_obj.json["objectDate"].match(/(.*)\/(.*)/);
@@ -203,27 +205,48 @@ export default {
             // --- refresh panel
         },
         edit (data) {
-            console.log(data);
-            clearTimeout(that.edit_timer);
-            that.flip = true;
-            that.left_show = false;
-            that.right_show = false;
+            if(that.Browser["Edge"] && !that.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
+                that.flip = true;
+                setTimeout(function(){
+                    // that.edge_hack_notepad = true;
+                    that.$refs["app"].innerHTML = "";
+                    that.$refs["app"].appendChild(that.$refs["notepad-object"]);
+                }, 1200);
+            }else{
+                clearTimeout(that.edit_timer);
+                that.flip = true;
+                that.left_show = false;
+                that.right_show = false;
+                that.edit_timer = setTimeout(function () {
+                    clearTimeout(that.edit_timer);
+                }, 700)
+            }
             var timestamp = new Date();
             that.buildTime = `${timestamp.getHours()}:${timestamp.getMinutes()}`;
         },
         calen (data) {
-            console.log(data);
-            clearTimeout(that.edit_timer);
-            that.edit_timer = setTimeout(function(){
+            if(that.Browser["Edge"] && !that.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
                 that.flip = false;
-                clearTimeout(this.timer);
-                this.tiimer = setTimeout(function(){
-                    that.left_show = true;
-                    that.right_show = true;
-                    clearTimeout(this.timer);
+                setTimeout(function(){
+                    // that.edge_hack = true;
+                    that.$refs["app"].innerHTML = "";
+                    that.$refs["app"].appendChild(that.$refs["calendar-object"]);
                 }, 1200);
+
+            }else{
                 clearTimeout(that.edit_timer);
-            }, 100);
+                that.edit_timer = setTimeout(function(){
+                    that.flip = false;
+                    clearTimeout(this.timer);
+                    this.timer = setTimeout(function(){
+                        that.left_show = true;
+                        that.right_show = true;
+                        clearTimeout(this.timer);
+                    }, 1200);
+                    clearTimeout(that.edit_timer);
+                }, 100);
+            }
+            console.log(data);
         },
         forceUpdateToday (yyyyMMdd) {
             var index = new Date(yyyyMMdd).format("yyyy/MM");
@@ -463,6 +486,10 @@ export default {
             console.log(distanceFromToday);
             console.log(that.prev_select_obj)
             console.log(that._toMonth_)
+        },
+        writing (val) {
+            that.edit_bools.check_disabled = val.length === 0;
+            that.edit_bools.back_disabled = val.length === 0;
         }
     },
     data () {
@@ -493,7 +520,17 @@ export default {
             "display_yyyyMMdd": "",
             "centerDatesGridsNum": 0,
             "notepadHeight": -1,
-            "flip": true
+            "flip": false,
+            edge_hack_calendar: false,
+            edge_hack_notepad: false,
+            Edge_Calendar_Show: true,
+            Edge_Notepad_Show: true,
+            buildTime: "",
+            edit_bools: {
+                check_disabled: true,
+                back_disabled: true,
+                forward_disabled: true
+            }
         }
     },
     beforeCreate () {
@@ -527,6 +564,7 @@ export default {
     mounted () {
         var h = parseFloat(window.getComputedStyle(that.$refs["calendar-object"], "").getPropertyValue("height"));
         that.notepadHeight = h;
+        that.Browser = utils.getBroswerType();
     }
 }
 </script>
@@ -535,7 +573,7 @@ export default {
     position: relative;
     display: flex; justify-content: center; align-items: center;
     width: 75%; 
-    max-width: 420px; min-width: 252px;
+    max-width: 440px; min-width: 252px;
     height: 100%;
     max-height: 540px;
     transform: scale(1);
@@ -544,7 +582,7 @@ export default {
     -moz-perspective: 1920px;
 }
 .app-container{
-    position: absolute; left: 0; top: 0;
+    position: absolute; top: 0; left: 0;
     padding: 12px 20px; 
     border-radius: 9px; 
     box-shadow: 0 2px 4px 0 rgba(14, 30, 37, .16);
@@ -555,9 +593,9 @@ export default {
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
     -moz-transform-style: preserve-3d;
-    transition: 1200ms ease-in-out;
-    -webkit-transition: 1200ms ease-in-out;
-    -moz-transition:  1200ms ease-in-out;
+    transition: 1.2s ease-in-out;
+    -webkit-transition: 1.2s ease-in-out;
+    -moz-transition:  1.2s ease-in-out;
 
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -565,28 +603,37 @@ export default {
 }
 .app-container.calendar{
     z-index: 2;
+    width: calc(100% - 40px);
     transform: rotateY(0) scale(1);
     -webkit-transform: rotateY(0) scale(1);
     -moz-transform: rotateY(0) scale(1);
+    -ms-transform: rotateY(0) scale(1);
 }
 .app.flip .app-container.calendar{
     transform: rotateY(-180deg) scale(.4);
     -webkit-transform: rotateY(-180deg) scale(.4);
     -moz-transform: rotateY(-180deg) scale(.4);
+    -ms-transform: rotateY(-180deg) scale(.4);
 }
 .app-container.notepad{
     width: calc(100% - 40px);
     background-color: #fff;
-    box-shadow: transparent;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .16);
     transform: rotateY(180deg) scale(.4);
     -webkit-transform: rotateY(180deg) scale(.4);
     -moz-transform: rotateY(180deg) scale(.4);
+    -ms-transform: rotateY(180deg) scale(.4);
     z-index: 1;
 }
 .app.flip .app-container.notepad{
     transform: rotateY(0) scale(1);
     -webkit-transform: rotateY(0) scale(1);
     -moz-transform: rotateY(0) scale(1);
+    -ms-transform: rotateY(0) scale(1);
+}
+@keyframes notepad_flip {
+    from{transform: rotateY(180deg) scale(.4);}
+    to{transform: rotateY(0) scale(1);}
 }
 .menu-button{
     position: absolute;
@@ -674,13 +721,13 @@ export default {
 .under-title .build-time{
     color: #bbb;
     font-size: 14px;
-    letter-spacing: .1rem;
+    letter-spacing: .025rem;
     float: left;
 }
 .under-title .tags_options{
     color: #bbb;
     font-size: 14px;
-    letter-spacing: .1rem;
+    letter-spacing: .025rem;
     float: right;
 }
 </style>

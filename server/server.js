@@ -4,7 +4,7 @@ const path = require("path");
 const urlLib = require("url");
 const { exec } = require("child_process");
 // console.log(dev)
-const project_root_dir = path.resolve(__dirname, "../../");
+const project_root_dir = path.resolve(__dirname, "../");
 var port = "4321";
 var url = path.resolve(project_root_dir, "./index.html");
 switch (process.platform) {

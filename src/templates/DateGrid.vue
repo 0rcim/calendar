@@ -32,7 +32,7 @@ export default {
     display: flex; flex-wrap: wrap;
     font-size: 1rem;
     height: 75px;
-    width: calc(100% / 7);
+    width: calc(100% / 7.001);
     box-sizing: border-box;
     border: .5px solid #fff; border-top: 0; border-bottom: 0;
     border-radius: .45rem;

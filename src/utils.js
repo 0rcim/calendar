@@ -17,7 +17,32 @@ function getComputedStyle () {
         return this;
     }
   }
-}
+};
+module.exports.getBroswerType = getBroswerType;
+function getBroswerType () {
+  var userAgent = navigator.userAgent; 
+  console.log(userAgent)
+  /**
+   *  Chrome
+      Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36
+      FF
+      Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0
+      Edge
+      Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763
+      Opera
+      Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36 OPR/62.0.3331.72
+      IE11
+      Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; rv:11.0) like Gecko
+   */
+  return {
+    "Opera": userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1,
+    "FF": userAgent.indexOf("Firefox") > -1,
+    "Chrome": userAgent.indexOf("Chrome") > -1,
+    "Safari": userAgent.indexOf("Safari") > -1,
+    "IE": (userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !(userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1)) || userAgent.indexOf(".NET") > -1,
+    "Edge": userAgent.indexOf("Trident/") > -1 || userAgent.indexOf("Edge/") > -1
+  }
+};
 module.exports.dateFormat = dateFormat;
 function dateFormat () {
     Date.prototype.format = function(fmt) { 
