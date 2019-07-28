@@ -1,0 +1,24 @@
+{
+    "db_path": "/server/db/datesData.json",
+    "created": "2019/07/28",
+    "db": {
+        "2019": {
+            "7": {
+                "1": [
+                    {
+                        "id": "[2019-07-01]#1",
+                        "title": "title#1",
+                        "update_time": "00:01",
+                        "content": "哈哈哈哈哈哈哈哈哈哈哈！！！！！"
+                    },
+                    {
+                        "id": "[2019-07-01]#2",
+                        "title": "title#2",
+                        "update_time": "00:02",
+                        "content": "aaaaaaaaaaaaaaaaaaaaa!!!!"
+                    }
+                ]
+            }
+        }
+    }
+}

@@ -167,7 +167,7 @@ export default {
                         "update_time": "09:22",
                         "content": "yourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\n"
                     }
-                ]
+                ];
                 var tl = {
                     "solarDate": sd,
                     "lunarDate": that.returnBottomLabel(sy, sm, sd, lds.lunarMonth, lds.lunarDay),
@@ -179,6 +179,23 @@ export default {
                 return tl;
             };
             var day_num = getMonthDayNum(tar_year, tar_month);
+            // var aq = new Promise((resolve, reject) => {
+            //     utils.AjaxRequest.post({
+            //         "url": "http://localhost:4321/getNotes",
+            //         "queryString": utils.joint({
+            //             "sy": now_year,
+            //             "sm": now_month
+            //         }),
+            //         "onSuccess": function (req) {
+            //             var data = JSON.parse(req.responseText);
+            //             reject(data);
+            //             console.log(now_year, now_month, data);
+            //         }
+            //     });
+            // });
+            // aq.then(function (data) {
+            //     console.log(data)
+            // });
             var tMDs = [];
             for(var i=0; i<day_num; i++){
                 tMDs[i] = conributeToMonthDates(tar_year, tar_month, i+1, i+1);
@@ -604,7 +621,7 @@ export default {
         that.centerDatesData = that._toMonth_ =  that.makeDatesData(that.getTheMonth(now));
         that.prev_select_obj ={
             "idx": parseInt(now_.format("dd")),
-            "json": that.makeDatesData(that.getTheMonth(now))
+            "json": that._toMonth_
         }
         that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1));
         // console.log(that.makeDatesData(that.getTheMonth(now, -1)), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1)))
