@@ -29,5 +29,5 @@ export default {
 .ico-outer.disabled{pointer-events: none;}
 .ico-outer.disabled .touch-ripple .md-ico{opacity: .6; color: #aaa!important;}
 .touch-ripple:hover::before{opacity: 1;}
-.touch-ripple::before{content: ""; display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%; border-radius: 50%; background-color: rgba(0, 0, 0, .08); opacity: 0; transition: opacity 400ms ease; transform: scale(2.1); transform-origin: center;}
+.touch-ripple::before{content: ""; display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%; border-radius: 50%; background-color: rgba(0, 0, 0, .08); opacity: 0; transition: opacity 400ms ease; transform: scale(1.5); transform-origin: center;}
 </style>

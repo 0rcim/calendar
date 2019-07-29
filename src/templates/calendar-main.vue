@@ -55,23 +55,23 @@
             <transition name="fade">
                 <div class="note-body" style="back">
                     <div class="icon-banner">
-                        <touch-ripple :side="'right'" @event_click="calen" :theme="'green'" :disabled="edit_bools.check_disabled">
-                            <md-ico :codepoint="'check'" :color="'#41b883'"></md-ico>
+                        <touch-ripple :side="'right'" @event_click="calen" :theme="'green'">
+                            <md-ico :codepoint="'exit_to_app'" :color="'#41b883'"></md-ico>
                         </touch-ripple>
-                        <touch-ripple :side="'left'" :title="'上一篇'" :disabled="edit_bools.back_disabled">
+                        <touch-ripple :side="'left'" :title="'上一篇'" :disabled="back_disabled" @event_click="back">
                             <md-ico :codepoint="'arrow_back'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
-                        <touch-ripple :side="'left'" :title="'下一篇'" :disabled="edit_bools.forward_disabled">
+                        <touch-ripple :side="'left'" :title="'下一篇'" :disabled="forward_disabled" @event_click="forward">
                             <md-ico :codepoint="'arrow_forward'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
-                        <touch-ripple :side="'left'" :title="'永久删除此条便笺'" :theme="'red'">
+                        <!-- <touch-ripple :side="'left'" :title="'永久删除此条便笺'" :theme="'red'" @event_click="delete_forever">
                             <md-ico :codepoint="'delete_forever'" :color="'#f44336'"></md-ico>
-                        </touch-ripple>
+                        </touch-ripple> -->
                     </div>
                     <input-area ref="ia" @writing="writing" :title_show="title_show" @titling="titling"></input-area>
                     <div class="under-title">
                         <div class="build-time"><span v-text="buildTime"></span></div>
-                        <div class="tags_options"><span><span>这一天</span>的<span>#1</span>便笺</span></div>
+                        <div class="tags_options"><span><span>这一天</span>的<span class="note_order_class" v-text="note_order">#1</span>便笺</span></div>
                         <div style="clear:both;"></div>
                     </div>
                     <text-area ref="ta" @writing="writing" :tip_id="tip_id"></text-area>
@@ -129,6 +129,18 @@ export default {
             }
             return spec;
         },
+        back_disabled () {
+            console.log(that.selectedDayNotesPage)
+            console.log(that.selectedDayNotes)
+            return that.selectedDayNotesPage === 0;
+        },
+        forward_disabled () {
+            console.log(that.selectedDayNotes)
+            return that.selectedDayNotesPage === that.selectedDayNotes.length-1;
+        },
+        note_order () {
+            return `#${that.selectedDayNotesPage+1}`
+        }
         // title_show () {
         //     console.log("A")
         //     return that.ia_val.length === 0 || that.ta_val.length === 0;
@@ -144,7 +156,7 @@ export default {
             that.menuLeave = !that.menuLeave;
             that.navIsShow = true;
         },
-        makeDatesData (yyyyMM) {
+        makeDatesData (yyyyMM, datesData="centerDatesData") {
             var now = new Date();
             var now_year = parseInt(now.format("yyyy"));
             var now_month = parseInt(now.format("MM"))
@@ -160,25 +172,35 @@ export default {
             };
             var conributeToMonthDates = function (sy, sm, sd, i_) {
                 var lds = utils.sloarToLunar(sy, sm, sd);
-                var todayNotes = [
-                    {
-                        "id": "[2019-07-26]#"+i_,
-                        "title": "....",
-                        "update_time": "09:22",
-                        "content": "yourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\nyourtexthere_thisisyourtextHere\n"
-                    }
-                ];
                 var tl = {
                     "solarDate": sd,
                     "lunarDate": that.returnBottomLabel(sy, sm, sd, lds.lunarMonth, lds.lunarDay),
                     "lunarMonth": lds.lunarMonth,
                     "isToday": sd === now_day && isTodayTip,
                     "isSelected": false,
-                    "todayNotes": todayNotes
+                    "todayNotes": []
                 };
                 return tl;
             };
             var day_num = getMonthDayNum(tar_year, tar_month);
+            utils.AjaxRequest.post({
+                "url": "http://localhost:4321/getNotes",
+                "queryString": utils.joint({
+                    "sy": tar_year,
+                    "sm": tar_month
+                }),
+                "onSuccess": function (req) {
+                    var data = JSON.parse(req.responseText);
+                    // that.
+                    for(var dayNote in data){
+                        that[datesData]["toMonthDates"][parseInt(dayNote)-1]["todayNotes"] = data[dayNote]
+                    }
+                    console.log("#186", tar_year, tar_month, data)
+                    return data;
+                    console.log(now_year, now_month, data);
+                }
+            });
+            // console.log(dt)
             // var aq = new Promise((resolve, reject) => {
             //     utils.AjaxRequest.post({
             //         "url": "http://localhost:4321/getNotes",
@@ -237,6 +259,11 @@ export default {
             // --- refresh panel
         },
         edit (data) {
+            var dayNotes = data.json.toMonthDates[parseInt(data.idx)-1].todayNotes; // Array
+            if(dayNotes.length === 0) return; // 所选日无便笺可查看或修改
+            // that.edit_bools.check_disabled = true;
+            that.selectedDayNotes = dayNotes;
+            console.log(data);
             that.$refs["notepad-object"].style.visibility = "visible";
             if(window.Browser["Edge"] && !window.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
                 that.flip = true;
@@ -254,12 +281,11 @@ export default {
                     clearTimeout(that.edit_timer);
                 }, 700)
             }
-            var timestamp = new Date();
-            that.buildTime = timestamp.format("hh:mm");
-            var dayNotes = data.json.toMonthDates[data.idx].todayNotes; // Array
+            that.selectedDayNotesPage = 0; // 初始就显示的当日第一条便签
+            // var timestamp = new Date();
+            // that.buildTime = timestamp.format("hh:mm");
             that.ia_ele.focus()
-            // console.log(that.$refs["ia"].$el.querySelector("input"))
-            // console.log(that.$refs["ia"])
+            console.log("#280", dayNotes)
             that.ia_ele.value = that.ia_val = dayNotes[0].title;
             that.title_show = dayNotes[0].title.length === 0;
             that.ta_ele.value = that.ta_val = dayNotes[0].content;
@@ -289,21 +315,22 @@ export default {
                     clearTimeout(that.edit_timer);
                 }, 100);
             };
-            utils.AjaxRequest.post({
-                "url": "http://localhost:4321/sendNotes",
-                "queryString": utils.joint({
-                    "id": that.tip_id,
-                    "title": that.ia_ele.value,
-                    "content": that.ta_ele.value,
-                    "update_time": that.buildTime
-                }),
-                "onSuccess": function (req) {
-                    console.log(req.responseText)
-                },
-                "onError": function (req) {
-                    console.log(req.responseText)
-                }
-            })
+            // control_post && utils.AjaxRequest.post({
+            //     "url": "http://localhost:4321/sendNotes",
+            //     "queryString": utils.joint({
+            //         "id": that.tip_id,
+            //         "title": that.ia_ele.value,
+            //         "content": that.ta_ele.value,
+            //         "update_time": that.buildTime
+            //     }),
+            //     "onSuccess": function (req) {
+            //         that.set3pagesDates(that.prev_select_obj.json.objectDate);
+            //         console.log(req.responseText)
+            //     },
+            //     "onError": function (req) {
+            //         console.log(req.responseText)
+            //     }
+            // })
             console.log(data);
         },
         forceUpdateToday (yyyyMMdd) {
@@ -475,9 +502,9 @@ export default {
             // console.log("#273", center_yyyyMM_Is);
             var h = parseFloat(window.getComputedStyle(that.$refs["calendar-object"], "").getPropertyValue("height"));
             that.notepadHeight = h;
-            that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1));
+            that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1), "prevDatesData");
             that.centerDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is));
-            that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1));
+            that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1), "nextDatesData");
             fn && fn();
         },
         backToday () {
@@ -505,7 +532,7 @@ export default {
             if(distanceFromToday===0){ // toMonth
                 // ---
             }else if(distanceFromToday < 0){ // previous // 滑至page2
-                that.nextDatesData = that.makeDatesData(that._toMonth_.objectDate);
+                that.nextDatesData = that.makeDatesData(that._toMonth_.objectDate, "nextDatesData");
                 that.page0 = false;
                 that.page2 = true;
                 that.page_transition = true;
@@ -523,7 +550,7 @@ export default {
                     that.selected(that.prev_select_obj);
                 }, 400);
             }else{ // future // 滑动至page1
-                that.prevDatesData = that.makeDatesData(that._toMonth_.objectDate);
+                that.prevDatesData = that.makeDatesData(that._toMonth_.objectDate, "prevDatesData");
                 that.page0 = true;
                 that.page2 = false;
                 that.page_transition = true;
@@ -549,7 +576,7 @@ export default {
             var val = e.target.value;
             that.ia_val = val;
             that.title_show = val.length === 0;
-            that.edit_bools.check_disabled = that.ta_val.length === 0 && val.length === 0;
+            // that.edit_bools.check_disabled = that.ta_val.length === 0 && val.length === 0;
             // console.log(val.length, that.title_show)
             // that.edit_bools.check_disabled = val.length === 0;
             // that.edit_bools.back_disabled = val.length === 0;
@@ -557,10 +584,68 @@ export default {
         writing (e) {
             var val = e.target.value;
             that.ta_val = val;
-            that.edit_bools.check_disabled = that.ia_val.length === 0 && val.length === 0;
+            // that.edit_bools.check_disabled = that.ia_val.length === 0 && val.length === 0;
             // console.log(val)
             // that.edit_bools.check_disabled = val.length === 0;
             // that.edit_bools.back_disabled = val.length === 0;
+        },
+        back () {
+            that.selectedDayNotesPage --;
+            if(that.selectedDayNotesPage === -1) that.selectedDayNotesPage = 0;
+            let n = that.selectedDayNotesPage;
+            that.ia_ele.value = that.ia_val = that.selectedDayNotes[n].title;
+            that.title_show = that.selectedDayNotes[n].title.length === 0;
+            that.ta_ele.value = that.ta_val = that.selectedDayNotes[n].content;
+            that.buildTime = that.selectedDayNotes[n].update_time;
+            that.tip_id = that.selectedDayNotes[n].id;
+            console.log("back")
+        },
+        forward () {
+            that.selectedDayNotesPage ++;
+            if(that.selectedDayNotesPage === that.selectedDayNotes.length) that.selectedDayNotesPage = that.selectedDayNotes.length-1;
+            let n = that.selectedDayNotesPage;
+            that.ia_ele.value = that.ia_val = that.selectedDayNotes[n].title;
+            that.title_show = that.selectedDayNotes[n].title.length === 0;
+            that.ta_ele.value = that.ta_val = that.selectedDayNotes[n].content;
+            that.buildTime = that.selectedDayNotes[n].update_time;
+            that.tip_id = that.selectedDayNotes[n].id;
+            console.log("forward")
+        },
+        delete_forever () {
+            utils.AjaxRequest.post({
+                "url": "http://localhost:4321/deleteNotes",
+                "queryString": utils.joint({
+                    "date": `${that.prev_select_obj.json.objectDate}/${that.prev_select_obj.idx}`,
+                    "n_order": that.selectedDayNotesPage
+                }),
+                "onSuccess": function (req) {
+                    // that.selectedDayNotes.splice(that.selectedDayNotesPage, 1);
+                    // // that.selectedDayNotesPage = 0;
+                    // let n = that.selectedDayNotesPage;
+                    // if(n+1 >= that.selectedDayNotes.length){
+                    //     n--;
+                    //     that.back();
+                    // }
+                    // if(n-1 <= 0){
+                    //     n++;
+                    //     that.forward();
+                    // }
+                    // if(!that.selectedDayNotes[n]){
+                    //     that.calen(null, false);
+                    // }else{
+                    //     that.ia_ele.value = that.ia_val = that.selectedDayNotes[n].title;
+                    //     that.title_show = that.selectedDayNotes[n].title.length === 0;
+                    //     that.ta_ele.value = that.ta_val = that.selectedDayNotes[n].content;
+                    //     that.buildTime = that.selectedDayNotes[n].update_time;
+                    //     that.tip_id = that.selectedDayNotes[n].id;
+                    //     that.set3pagesDates(that.prev_select_obj.json.objectDate);
+                    // }
+                    // var n_relect_arr = [];
+                    // for(var x=0; x<that.selectedDayNotes.length; x++){
+                    //     n_relect_arr.push(that.selectedDayNotes);
+                    // }
+                }
+            });
         }
     },
     data () {
@@ -598,14 +683,15 @@ export default {
             Edge_Notepad_Show: true,
             buildTime: "",
             edit_bools: {
-                check_disabled: true,
-                back_disabled: true,
-                forward_disabled: true
+                // back_disabled: true,
+                // forward_disabled: true
             },
             title_show: true,
             tip_id: "",
             ia_val: "",
-            ta_val: ""
+            ta_val: "",
+            selectedDayNotes: [],
+            selectedDayNotesPage: 0
         }
     },
     beforeCreate () {
@@ -617,14 +703,14 @@ export default {
         var now = now_.format("yyyy/MM")
         that.toDateDayNum = parseInt(now_.format("dd"));
         // console.log("#237", that.getTheMonth(now, -1))
-        that.prevDatesData = that.makeDatesData(that.getTheMonth(now, -1));
+        that.prevDatesData = that.makeDatesData(that.getTheMonth(now, -1), "prevDatesData");
         that.centerDatesData = that._toMonth_ =  that.makeDatesData(that.getTheMonth(now));
         that.prev_select_obj ={
             "idx": parseInt(now_.format("dd")),
             "json": that._toMonth_
         }
-        that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1));
-        // console.log(that.makeDatesData(that.getTheMonth(now, -1)), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1)))
+        that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1), "nextDatesData");
+        console.log(that.makeDatesData(that.getTheMonth(now, -1), "prevDatesData"), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1), "nextDatesData"))
         that.forceUpdateToday(now_.format("yyyy/MM/dd")) // 初始化设置今日时间
         that.display_yyyyMMdd = now_.format("yyyy/MM/dd");
         // that.forceUpdateToday("2019/7/31")
@@ -806,6 +892,9 @@ export default {
     font-size: 14px;
     letter-spacing: .025rem;
     float: right;
+}
+.note_order_class{
+    font-weight: 500; color: #ea5245;
 }
 </style>
 
