@@ -29,6 +29,6 @@
     from{transform: scale(1); opacity: 1;}
     to{transform: scale(1.15); opacity: 0;}
 }
-.scale-enter-active {animation: scale-in 1s ease-in-out;}
+.scale-enter-active {animation: scale-in 600ms ease-in-out;}
 .scale-leave-active {animation: scale-out 200ms 200ms ease-in-out;}
 /* scale */

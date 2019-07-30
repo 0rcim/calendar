@@ -40,7 +40,9 @@
                                 <div class="inner-slide-item" v-show="isi_control_bool[2]" style="background-color: purple;">2</div>
                             </transition>
                             <transition name="scale">
-                                <div class="inner-slide-item" v-show="isi_control_bool[3]" style="background-color: yellow;">3</div>
+                                <div class="inner-slide-item" v-show="isi_control_bool[3]">
+                                    <static-help></static-help>
+                                </div>
                             </transition>
                         </div>
                     </div>
@@ -121,13 +123,16 @@ import chevronBtn from "./ChevronButton.vue";
 import inputArea from "./InputArea.vue";
 import textArea from "./textArea.vue";
 import selectionList from "./SelectionList.vue";
+// --- static templates --- //
+import staticHelp from "./static/StaticHelp.vue";
 var that = null;
 export default {
     "name": "calendarApp",
     "components": { 
         mdIco , touchRipple , weekBanner, 
         datesTable , caleHeader , chevronBtn , 
-        inputArea , textArea , selectionList
+        inputArea , textArea , selectionList ,
+        staticHelp
     },
     "computed": {
         isi_control_bool () {
@@ -729,7 +734,7 @@ export default {
             "calen_header": "所有便笺",
             "isi": {
                 "item_tot": 4,
-                "active_page": 1
+                "active_page": 3
             },
             // "isi_control_bool": [],
             "menuLeave": true,
@@ -914,6 +919,7 @@ export default {
 .calen-header{
     position: absolute; left: 0; top: 0; 
     display: flex; justify-content: center; align-items: center;
+    box-sizing: border-box; border-bottom: 1px solid rgba(0, 0, 0, .08);
     height: 100%; width: 100%;
 }
 .container{
@@ -926,12 +932,13 @@ export default {
 }
 .inner-slide-container{
     width: 100%; height: 100%; position: relative;
-    background-color: rgba(0, 255, 0, .25);
+    background-color: rgba(255, 255, 255, .25);
     font-size: 1rem;
 }
 .inner-slide-item{
     width: 100%; height: 100%; position: absolute; left: 0; top: 0;
-    background-color: rgba(0, 0, 255, .25)
+    background-color: #fff;
+    overflow-y: auto;
 }
 .note-body > .icon-banner{
     overflow: initial;
