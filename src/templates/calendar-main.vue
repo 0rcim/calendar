@@ -2,26 +2,51 @@
 <template>
     <div class="app" ref="app" :class="{'flip': flip}">
         <div ref="calendar-object" class="app-container calendar" :class="{'edge': edge_hack_calendar}" v-show="Edge_Calendar_Show">
-            <transition name="bounce">
+            <transition name="fade">
                 <div class="menu-button" v-if="menuLeave">
                     <touch-ripple :side="'right'" @event_click="showNav">
                         <md-ico :codepoint="'menu'" :color="'#ea5245'"></md-ico>
+                    </touch-ripple>
+                    <touch-ripple :side="'right'" :title="'添加今日便笺'" @event_click="add_today_notes">
+                        <md-ico :codepoint="'add'" :color="'#ea5245'"></md-ico>
                     </touch-ripple>
                 </div>
             </transition>
             <transition name="fade">
                 <div class="nav" v-if="navIsShow">
                     <div class="icon-banner">
+                        <div class="calen-header">
+                            <span v-text="calen_header">此处标题</span>
+                        </div>
                         <touch-ripple :side="'right'" @event_click="hideNav">
                             <md-ico :codepoint="'close'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
-                        <touch-ripple :side="'left'" :title="'设置'">
+                        <touch-ripple :side="'left'" @event_click="sel_show_hide">
                             <md-ico :codepoint="'more_horiz'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
-                        <touch-ripple :side="'left'" :title="'添加今日便笺'" @event_click="add_today_notes">
-                            <md-ico :codepoint="'add'" :color="'#ea5245'"></md-ico>
-                        </touch-ripple>
                     </div>
+                    <div class="container">
+                        <div class="sel-mask" @click="sel_mask_click" v-show="sel_show"></div>
+                        <div class="inner-slide-container">
+                            <transition name="scale">
+                                <div class="inner-slide-item" v-show="isi_control_bool[0]" style="background-color: red;">
+                                    0
+                                </div>
+                            </transition>
+                            <transition name="scale">
+                                <div class="inner-slide-item" v-show="isi_control_bool[1]" style="background-color: orange;">1</div>
+                            </transition>
+                            <transition name="scale">
+                                <div class="inner-slide-item" v-show="isi_control_bool[2]" style="background-color: purple;">2</div>
+                            </transition>
+                            <transition name="scale">
+                                <div class="inner-slide-item" v-show="isi_control_bool[3]" style="background-color: yellow;">3</div>
+                            </transition>
+                        </div>
+                    </div>
+                    <transition name="offset">
+                        <selection-list v-show="sel_show"></selection-list>
+                    </transition>
                 </div>
             </transition>
             <cale-header :month="dateJSON.month" :day="dateJSON.day" :year="dateJSON.year" :isToday="isToday"></cale-header>
@@ -85,14 +110,8 @@ import utils from "../utils";
 import { festivals } from "../../server/data/festivalsData";
 utils.dateFormat();
 utils.getComputedStyle();
-// console.log(utils.sloarToLunar(2017, 6, 24));
-// console.log(utils.getSolarTerm(2020, 9, 22));
-// console.log(utils.getSolarTerm(2019, 9, 23));
-// -----
-console.log(utils.specialResolveSD("12第最后个Mon.", 2019))
-// console.log(utils.getChuXi(1966))
-// console.log(utils.getHanShi(1996))
-console.log("dx", utils.getYearsSolarTerm(2020, "大雪"), utils.getSolarTerm(2019, 12, 7))
+// console.log(utils.specialResolveSD("12第最后个Mon.", 2019))
+// console.log("dx", utils.getYearsSolarTerm(2020, "大雪"), utils.getSolarTerm(2019, 12, 7))
 import mdIco from "./MdIco.vue";
 import touchRipple from "./TouchRipple.vue";
 import caleHeader from "./CaleHeader.vue";
@@ -101,11 +120,23 @@ import datesTable from "./DatesTable.vue";
 import chevronBtn from "./ChevronButton.vue";
 import inputArea from "./InputArea.vue";
 import textArea from "./textArea.vue";
+import selectionList from "./SelectionList.vue";
 var that = null;
 export default {
     "name": "calendarApp",
-    "components": { mdIco , touchRipple , weekBanner, datesTable , caleHeader , chevronBtn , inputArea , textArea },
+    "components": { 
+        mdIco , touchRipple , weekBanner, 
+        datesTable , caleHeader , chevronBtn , 
+        inputArea , textArea , selectionList
+    },
     "computed": {
+        isi_control_bool () {
+            var empty = [];
+            for(var x=0; x<that.isi.item_tot-1; empty[x++]=false);
+            empty.splice(that.isi.active_page, 0, true);
+            console.log("#127", empty)
+            return empty;
+        },
         isToday () {
             var mth = that.prev_select_obj.json["objectDate"].match(/(.*)\/(.*)/);
             var selectDate = that.prev_select_obj !== null ? new Date(`${that.prev_select_obj.json.objectDate}/${that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["solarDate"]}\ 00:00:00`).valueOf():0;
@@ -147,6 +178,12 @@ export default {
         // }
     },
     "methods": {
+        sel_show_hide () {
+            that.sel_show = !that.sel_show;
+        },
+        sel_mask_click () {
+            that.sel_show = false;
+        },
         add_today_notes () {
             that.$refs["notepad-object"].style.visibility = "visible";
             that.selectedDayNotes = [];
@@ -687,6 +724,14 @@ export default {
     data () {
         return {
             "navIsShow": false,
+            "sel_show": false,
+            // "navIsShow": false,
+            "calen_header": "所有便笺",
+            "isi": {
+                "item_tot": 4,
+                "active_page": 1
+            },
+            // "isi_control_bool": [],
             "menuLeave": true,
             "week_order": ["一","二","三","四","五","六","日"],
             "prevDatesData": {},
@@ -861,6 +906,32 @@ export default {
     padding: 0 .5rem;
     background-color: #fff;
     overflow: hidden;
+}
+.nav > .icon-banner{
+    position: relative;
+    font-size: 1rem; letter-spacing: .0125rem;
+}
+.calen-header{
+    position: absolute; left: 0; top: 0; 
+    display: flex; justify-content: center; align-items: center;
+    height: 100%; width: 100%;
+}
+.container{
+    width: 100%; height: calc(100% - 48px);
+    overflow: hidden;
+}
+.sel-mask{
+    position: absolute; left: 0; top: 0;
+    width: 100%; height: 100%; visibility: visible; z-index: 3;
+}
+.inner-slide-container{
+    width: 100%; height: 100%; position: relative;
+    background-color: rgba(0, 255, 0, .25);
+    font-size: 1rem;
+}
+.inner-slide-item{
+    width: 100%; height: 100%; position: absolute; left: 0; top: 0;
+    background-color: rgba(0, 0, 255, .25)
 }
 .note-body > .icon-banner{
     overflow: initial;

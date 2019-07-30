@@ -1,6 +1,6 @@
 // 图标按钮涟漪效果
 <template>
-    <div class="ico-outer" :class="{[theme]: true, 'disabled': disabled}" :style="{'float': side}" @click="event_click">
+    <div class="ico-outer" :class="{[theme]: theme && true, 'disabled': disabled}" :style="{'float': side}" @click="event_click">
         <div class="touch-ripple">
             <slot></slot>
         </div>

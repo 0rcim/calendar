@@ -14,7 +14,7 @@ export default {
 }
 </script>
 <style>
-.md-ico{font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;}
+.md-ico{font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;}
 </style>
 
 

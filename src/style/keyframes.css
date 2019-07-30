@@ -4,8 +4,31 @@
     50% {transform: scale(1.5);}
     100% {transform: scale(1);}
 }
-.fade-enter-active, .fade-leave-active {transition: opacity .5s;}
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {opacity: 0;}
 .bounce-enter-active {animation: bounce-in .5s;}
 .bounce-leave-active {animation: bounce-in .5s reverse;}
 /* bouce-in */
+/* fade */
+.fade-enter-active, .fade-leave-active {transition: opacity .5s;}
+.fade-enter, .fade-leave-to {opacity: 0;}
+/* fade */
+/* offset */
+@keyframes offset-out {
+    0% {transform: translateY(0); opacity: 1;}
+    90% {transform: translateY(.25rem);}
+    100% {transform: translateY(-1rem) scaleY(.85); opacity: 0;}
+}
+.offset-enter-active {animation: offset-out .2s reverse;}
+.offset-leave-active {animation: offset-out .2s;}
+/* offset */
+/* scale */
+@keyframes scale-in {
+    from{transform: scale(.98); opacity: 0;}
+    to{transform: scale(1); opacity: 1;}
+}
+@keyframes scale-out {
+    from{transform: scale(1); opacity: 1;}
+    to{transform: scale(1.15); opacity: 0;}
+}
+.scale-enter-active {animation: scale-in 1s ease-in-out;}
+.scale-leave-active {animation: scale-out 200ms 200ms ease-in-out;}
+/* scale */
