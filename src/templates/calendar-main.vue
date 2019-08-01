@@ -21,6 +21,16 @@
                         <touch-ripple :side="'right'" @event_click="hideNav">
                             <md-ico :codepoint="'close'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
+                        <transition name="offset">
+                            <touch-ripple :side="'right'" @event_click="delete_selected" v-show="delete_selected_btn_isShow" :title="'删除所选项'">
+                                <md-ico :codepoint="'delete_forever'" :color="'#ea5245'"></md-ico>
+                            </touch-ripple>
+                        </transition>
+                        <transition name="offset">
+                            <touch-ripple :side="'left'" @event_click="back_to_sy_sm" v-show="back_to_sy_sm_btn_isShow" :title="'回至月份归档'">
+                                <md-ico :codepoint="'arrow_back'" :color="'#ea5245'"></md-ico>
+                            </touch-ripple>
+                        </transition>
                         <touch-ripple :side="'left'" @event_click="sel_show_hide">
                             <md-ico :codepoint="'more_horiz'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
@@ -29,8 +39,9 @@
                         <div class="sel-mask" @click="sel_mask_click" v-show="sel_show"></div>
                         <div class="inner-slide-container">
                             <transition name="scale">
-                                <div class="inner-slide-item" v-show="isi_control_bool[0]" style="background-color: red;">
-                                    0
+                                <div class="inner-slide-item" v-show="isi_control_bool[0]">
+                                    <!-- pageName (sy_sm || sd) -->
+                                    <viewall-notes ref="viewall-notes" :sy_sm_arr="viewall_arr"></viewall-notes>
                                 </div>
                             </transition>
                             <transition name="scale">
@@ -108,7 +119,7 @@
     </div>
 </template>
 <script>
-import utils from "../utils";
+import utils, { joint } from "../utils";
 import { festivals } from "../../server/data/festivalsData";
 utils.dateFormat();
 utils.getComputedStyle();
@@ -123,6 +134,7 @@ import chevronBtn from "./ChevronButton.vue";
 import inputArea from "./InputArea.vue";
 import textArea from "./textArea.vue";
 import selectionList from "./SelectionList.vue";
+import viewallNotes from "./ViewallNotes.vue";
 // --- static templates --- //
 import staticHelp from "./static/StaticHelp.vue";
 var that = null;
@@ -132,7 +144,7 @@ export default {
         mdIco , touchRipple , weekBanner, 
         datesTable , caleHeader , chevronBtn , 
         inputArea , textArea , selectionList ,
-        staticHelp
+        staticHelp, viewallNotes
     },
     "computed": {
         isi_control_bool () {
@@ -176,11 +188,10 @@ export default {
         },
         note_order () {
             return `#${that.tip_id.split("#")[1]}`
+        },
+        delete_selected_btn_isShow () {
+            return !!that.selected_notes_arr_length;
         }
-        // title_show () {
-        //     console.log("A")
-        //     return that.ia_val.length === 0 || that.ta_val.length === 0;
-        // }
     },
     "methods": {
         sel_show_hide () {
@@ -225,6 +236,7 @@ export default {
             console.log("close");
             that.navIsShow = false;
             that.menuLeave = !that.menuLeave;
+            that.back_to_sy_sm();
         },
         showNav () {
             that.menuLeave = !that.menuLeave;
@@ -274,24 +286,6 @@ export default {
                     console.log(now_year, now_month, data);
                 }
             });
-            // console.log(dt)
-            // var aq = new Promise((resolve, reject) => {
-            //     utils.AjaxRequest.post({
-            //         "url": "http://localhost:4321/getNotes",
-            //         "queryString": utils.joint({
-            //             "sy": now_year,
-            //             "sm": now_month
-            //         }),
-            //         "onSuccess": function (req) {
-            //             var data = JSON.parse(req.responseText);
-            //             reject(data);
-            //             console.log(now_year, now_month, data);
-            //         }
-            //     });
-            // });
-            // aq.then(function (data) {
-            //     console.log(data)
-            // });
             var tMDs = [];
             for(var i=0; i<day_num; i++){
                 tMDs[i] = conributeToMonthDates(tar_year, tar_month, i+1, i+1);
@@ -315,15 +309,12 @@ export default {
         },
         selected (data) {
             // --- select highlight
-            // console.log("#154", data)
             that.prev_select_obj !== null && (that.prev_select_obj.json["toMonthDates"][that.prev_select_obj.idx-1]["isSelected"] = false);
             data.json["toMonthDates"][data.idx-1]["isSelected"] = true;
             that.prev_select_obj = data;
-            // console.log("#160", data)
             //  --- select highlight
 
             // --- refresh panel
-            // console.log("tmp", data);
             var mth = data.json["objectDate"].match(/(.*)\/(.*)/);
             that.dateJSON = {
                 "year": parseInt(mth[1]),
@@ -336,14 +327,11 @@ export default {
             that.adding_today_notes = false;
             var dayNotes = data.json.toMonthDates[parseInt(data.idx)-1].todayNotes; // Array
             if(dayNotes.length === 0) return; // 所选日无便笺可查看或修改
-            // that.edit_bools.check_disabled = true;
             that.selectedDayNotes = dayNotes;
-            // console.log(data);
             that.$refs["notepad-object"].style.visibility = "visible";
             if(window.Browser["Edge"] && !window.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
                 that.flip = true;
                 setTimeout(function(){
-                    // that.edge_hack_notepad = true;
                     that.$refs["app"].innerHTML = "";
                     that.$refs["app"].appendChild(that.$refs["notepad-object"]);
                 }, 600);
@@ -357,22 +345,17 @@ export default {
                 }, 700)
             };
             that.selectedDayNotesPage = 0; // 初始就显示的当日第一条便签
-            // var timestamp = new Date();
-            // that.buildTime = timestamp.format("hh:mm");
             that.ia_ele.focus()
-            // console.log("#280", dayNotes)
             that.ia_ele.value = that.ia_val = dayNotes[0].title;
             that.title_show = dayNotes[0].title.length === 0;
             that.ta_ele.value = that.ta_val = dayNotes[0].content;
             that.buildTime = dayNotes[0].update_time;
             that.tip_id = dayNotes[0].id;
-            // console.log(data)
         },
         calen (data) {
             if(window.Browser["Edge"] && !window.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
                 that.flip = false;
                 setTimeout(function(){
-                    // that.edge_hack = true;
                     that.$refs["app"].innerHTML = "";
                     that.$refs["app"].appendChild(that.$refs["calendar-object"]);
                 }, 600);
@@ -425,7 +408,6 @@ export default {
             }
             that._toMonth_["toMonthDates"][that.toDateDayNum-1].isToday = false;
             obj["toMonthDates"][num-1].isToday = true;
-            // console.log("#191", obj.todayDate);
             that._toMonth_.todayDate = new Date(yyyyMMdd).format("yyyy/MM/dd");
             that.dateJSON = {
                 "year": parseInt(new Date(yyyyMMdd).format("yyyy")),
@@ -435,11 +417,6 @@ export default {
         },
         returnBottomLabel (sy, sm, sd, lm, ld) {
             let int_y = parseInt(sy), int_m = parseInt(sm);
-            // console.log("#194", lm, ld)
-            // return ld === '初一' ? lm + '月' : ld;
-            // var ChuXi = utils.getChuXi(sy);
-            // var HanShi = utils.getHanShi(sy);
-            // console.log(ChuXi, HanShi)
             that.sy = sy;
             if(festivals["important"]["ld"][lm] && festivals["important"]["ld"][lm][ld] && festivals["important"]["ld"][lm][ld].length < 5){
                 return festivals["important"]["ld"][lm][ld];
@@ -536,7 +513,6 @@ export default {
                 that.page_transition = false;
                 var prevMonth = that.getTheMonth(new Date(that.display_yyyyMMdd).format("yyyy/MM"), -1);
                 that.set3pagesDates(prevMonth);
-                // console.log("prevMonth", prevMonth)
                 var selectFirstDay = prevMonth == that._toMonth_.todayDate ? new Date(that._toMonth_.todayDate).format("yyyy/MM") : "01";
                 that.display_yyyyMMdd = `${prevMonth}/${selectFirstDay}`;
                 that.prev_select_obj.json = that.centerDatesData;
@@ -654,18 +630,10 @@ export default {
             var val = e.target.value;
             that.ia_val = val;
             that.title_show = val.length === 0;
-            // that.edit_bools.check_disabled = that.ta_val.length === 0 && val.length === 0;
-            // console.log(val.length, that.title_show)
-            // that.edit_bools.check_disabled = val.length === 0;
-            // that.edit_bools.back_disabled = val.length === 0;
         },
         writing (e) {
             var val = e.target.value;
             that.ta_val = val;
-            // that.edit_bools.check_disabled = that.ia_val.length === 0 && val.length === 0;
-            // console.log(val)
-            // that.edit_bools.check_disabled = val.length === 0;
-            // that.edit_bools.back_disabled = val.length === 0;
         },
         back () {
             that.selectedDayNotesPage --;
@@ -689,40 +657,86 @@ export default {
             that.tip_id = that.selectedDayNotes[n].id;
             console.log("forward")
         },
-        delete_forever () {
+        back_to_sy_sm () {
+            that.$refs["viewall-notes"]["pageName"] = "sy_sm";
+            that.$refs["viewall-notes"]["selected_notes_arr"].splice(0);
+            that.selected_notes_arr_length = that.$refs["viewall-notes"]["selected_notes_arr"].length;
+            that.back_to_sy_sm_btn_isShow = false;
             utils.AjaxRequest.post({
-                "url": "http://localhost:4321/deleteNotes",
-                "queryString": utils.joint({
-                    "date": `${that.prev_select_obj.json.objectDate}/${that.prev_select_obj.idx}`,
-                    "n_order": that.selectedDayNotesPage
-                }),
+                "url": "http://localhost:4321/getDBInfo",
                 "onSuccess": function (req) {
-                    // that.selectedDayNotes.splice(that.selectedDayNotesPage, 1);
-                    // // that.selectedDayNotesPage = 0;
-                    // let n = that.selectedDayNotesPage;
-                    // if(n+1 >= that.selectedDayNotes.length){
-                    //     n--;
-                    //     that.back();
-                    // }
-                    // if(n-1 <= 0){
-                    //     n++;
-                    //     that.forward();
-                    // }
-                    // if(!that.selectedDayNotes[n]){
-                    //     that.calen(null, false);
-                    // }else{
-                    //     that.ia_ele.value = that.ia_val = that.selectedDayNotes[n].title;
-                    //     that.title_show = that.selectedDayNotes[n].title.length === 0;
-                    //     that.ta_ele.value = that.ta_val = that.selectedDayNotes[n].content;
-                    //     that.buildTime = that.selectedDayNotes[n].update_time;
-                    //     that.tip_id = that.selectedDayNotes[n].id;
-                    //     that.set3pagesDates(that.prev_select_obj.json.objectDate);
-                    // }
-                    // var n_relect_arr = [];
-                    // for(var x=0; x<that.selectedDayNotes.length; x++){
-                    //     n_relect_arr.push(that.selectedDayNotes);
-                    // }
+                    var viewall_arr = [];
+                    var data = JSON.parse(req.responseText);
+                    for(var year in data){
+                        for(var month in data[year]){
+                            let tmp = {
+                                "sy": year,
+                                "sm": month,
+                                "c": data[year][month].notesNum
+                            };
+                            viewall_arr.unshift(tmp);
+                        }
+                    };
+                    that["viewall_arr"] = viewall_arr;
                 }
+            });
+        },
+        delete_selected () {
+            let tar_notes = that.$refs["viewall-notes"].selected_notes_arr;
+            let will_del_notes_ids = tar_notes.map((item)=>{return item.n_id});
+            window.dia.setData({
+                "dia_isShow": true,
+                "dia_title": "删除便笺",
+                "dia_content": "<p>确定删除这" + tar_notes.length + "项便笺吗？</p>" + 
+                    "<p class='will_del_list'>" + 
+                    tar_notes.map((item)=>{
+                        return item["n_id"];
+                    }).join("<span>， </span>") +
+                    "</p>",
+                "dia_footer": [
+                    {
+                        "label": "确定",
+                        fn () {
+                            window.dia.setData("dia_isShow", false);
+                            utils.AjaxRequest.post({
+                                "url": "http://localhost:4321/deleteNotes",
+                                "queryString": joint({
+                                    "notes": JSON.stringify(will_del_notes_ids)
+                                }),
+                                "onSuccess": function (req) {
+                                    for(var x=0, l=that.$refs["viewall-notes"].sd_arr.length; x<l; x++){
+                                        for(var d=0, m=that.$refs["viewall-notes"].sd_arr[x].notes.length; d<m; d++){
+                                            if(that.$refs["viewall-notes"].sd_arr[x].notes[d]){
+                                                var p = will_del_notes_ids.indexOf(that.$refs["viewall-notes"].sd_arr[x].notes[d].n_id);
+                                                if(p !== -1){
+                                                    that.$refs["viewall-notes"].sd_arr[x].notes.splice(d, 1, {});
+                                                }
+                                                // console.log(that.$refs["viewall-notes"].sd_arr[x].notes)
+                                            }
+                                        }
+                                    }
+                                    tar_notes.splice(0);
+                                    that.selected_notes_arr_length = tar_notes.length;
+                                }
+                            });
+                        }
+                    },
+                    {
+                        "label": "取消",
+                        fn () {
+                            window.dia.setData("dia_isShow", false);
+                            let sd_arr = that.$refs["viewall-notes"].sd_arr;
+                            // console.log("#783", will_del_notes_ids)
+                            for(var m=0, a=sd_arr.length; m<a; m++){
+                                for(var n=0, b=sd_arr[m]["notes"].length; n<b; n++) 
+                                    will_del_notes_ids.indexOf(sd_arr[m]["notes"][n].n_id) !== -1 && 
+                                        (sd_arr[m]["notes"][n].isSelected = false);
+                            }
+                            tar_notes.splice(0);
+                            that.selected_notes_arr_length = tar_notes.length;
+                        }
+                    }
+                ]
             });
         }
     },
@@ -734,7 +748,7 @@ export default {
             "calen_header": "所有便笺",
             "isi": {
                 "item_tot": 4,
-                "active_page": 3
+                "active_page": 0
             },
             // "isi_control_bool": [],
             "menuLeave": true,
@@ -778,7 +792,12 @@ export default {
             ta_val: "",
             selectedDayNotes: [],
             selectedDayNotesPage: 0,
-            adding_today_notes: false
+            adding_today_notes: false,
+            // "pageName": "sy_sm",
+            "viewall_arr": [],
+            back_to_sy_sm_btn_isShow: false,
+            // delete_selected_btn_isShow: false
+            selected_notes_arr_length: 0
         }
     },
     beforeCreate () {
@@ -932,12 +951,13 @@ export default {
 }
 .inner-slide-container{
     width: 100%; height: 100%; position: relative;
-    background-color: rgba(255, 255, 255, .25);
+    background-color: #fff;
     font-size: 1rem;
 }
 .inner-slide-item{
     width: 100%; height: 100%; position: absolute; left: 0; top: 0;
     background-color: #fff;
+    transform-origin: top center;
     overflow-y: auto;
 }
 .note-body > .icon-banner{
@@ -1011,6 +1031,12 @@ export default {
 }
 .note_order_class{
     font-weight: 500; color: #ea5245;
+}
+p.will_del_list{
+    color: #ea5245!important;
+}
+p.will_del_list span{
+    color: #333;
 }
 </style>
 

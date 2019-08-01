@@ -1,5 +1,6 @@
 import Vue from "vue";
 import App from "./templates/calendar-main.vue";
+import dialogueBox from "./templates/Dialogue.vue";
 import "./style/main.css";
 var app = new Vue({
     "el": "#app",
@@ -10,4 +11,9 @@ var app = new Vue({
             // console.log("resize")
         }
     }
+});
+new Vue({
+    "el": "#dia",
+    "template": "<dialogue-box/>",
+    "components": { dialogueBox }
 });

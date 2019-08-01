@@ -5,6 +5,7 @@
 </template>
 <script>
 var that = null;
+import { AjaxRequest } from "../utils";
 export default {
     "name": "selectionList",
     "methods": {
@@ -23,6 +24,25 @@ export default {
                 {
                     "label": "查看所有便笺",
                     "fn": function () {
+                        that.$parent.pageName = "sy_sm";
+                        AjaxRequest.post({
+                            "url": "http://localhost:4321/getDBInfo",
+                            "onSuccess": function (req) {
+                                var viewall_arr = [];
+                                var data = JSON.parse(req.responseText);
+                                for(var year in data){
+                                    for(var month in data[year]){
+                                        let tmp = {
+                                            "sy": year,
+                                            "sm": month,
+                                            "c": data[year][month].notesNum
+                                        };
+                                        viewall_arr.unshift(tmp);
+                                    }
+                                };
+                                that.$parent["viewall_arr"] = viewall_arr;
+                            }
+                        });
                         that.active(0);
                     }
                 },

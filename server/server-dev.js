@@ -60,7 +60,6 @@ http.createServer(function(req, res){
                 fs.writeFileSync(filepath, JSON.stringify(dataBase), "utf-8");
                 console.log(mth[1], mth[2])
                 // console.log(db);
-                res.end();
             }
             if(req_path === "/getNotes"){
                 var queryYear = reqData.sy;
@@ -73,24 +72,58 @@ http.createServer(function(req, res){
                 // console.log(queryYear, parseInt(queryMonth), dayNotes);
                 var str_daynotes = JSON.stringify(dayNotes);
                 res.write(str_daynotes);
-                res.end();
             }
             if(req_path === "/deleteNotes"){
                 console.log(reqData);
-                var tar_date = new Date(reqData.date);
-                var tar_y = parseInt(tar_date.format("yyyy")),
-                    tar_m = parseInt(tar_date.format("MM")),
-                    tar_d = parseInt(tar_date.format("dd"));
-                var n_order = parseInt(reqData.n_order);
-                var dataBase = db; 
-                dataBase["db"][tar_y][tar_m][tar_d].splice(n_order, 1);
-                for(var x = 0, l=dataBase["db"][tar_y][tar_m][tar_d].length; x<l; x++){
-                    var tmp_id = dataBase["db"][tar_y][tar_m][tar_d][x]["id"];
-                    dataBase["db"][tar_y][tar_m][tar_d][x]["id"] = tmp_id.replace(/(.*)#(.*)/, `$1#${x+1}`);
+                let tarNotes = JSON.parse(reqData.notes);
+                var ref = {};
+                for(var x=0, l=tarNotes.length; x<l; x++){
+                    let mth = tarNotes[x].match(/\[(.*)-(.*)-(.*)\]#(.*)/);
+                    let sy = parseInt(mth[1]), sm = parseInt(mth[2]), sd = parseInt(mth[3]);
+                    ref[sy] || (ref[sy] = {});
+                    ref[sy][sm] || (ref[sy][sm] = {});
+                    ref[sy][sm][sd] || (ref[sy][sm][sd] = []);
+                    ref[sy][sm][sd].push(tarNotes[x])
                 };
-                fs.writeFileSync(filepath, JSON.stringify(dataBase), "utf-8");
-                res.end();
+                // ---- //
+                for(let year in ref)
+                for(let month in ref[year])
+                for(let day in ref[year][month])
+                for(let x = 0, l=ref[year][month][day].length; x<l; x++)
+                for(let y = 0, m=db["db"][year][month][day].length; y<m; y++)
+                if(db["db"][year][month][day][y]){
+                    db["db"][year][month][day][y].id === ref[year][month][day][x] && db["db"][year][month][day].splice(y, 1);
+                }
+                // ---- //
+                // 重新写入 # 编号顺序
+                for(let year in db["db"])
+                for(let month in db["db"][year])
+                for(let day in db["db"][year][month])
+                for(let x = 0, l=db["db"][year][month][day].length; x<l; x++)(
+                    db["db"][year][month][day][x].id = 
+                    db["db"][year][month][day][x].id.split("#").slice(0, 1).concat(x+1).join("#")
+                )
+                // ---- //
+                console.log(JSON.stringify(db))
+                fs.writeFileSync(filepath, JSON.stringify(db), "utf-8");
             }
+            if(req_path === "/getDBInfo"){
+                let allNotesData = db["db"];
+                let DBInfo = {};
+                for(var year in allNotesData){
+                    DBInfo[year] = {};
+                    for(var month in allNotesData[year]){
+                        var count = 0;
+                        for(var day in allNotesData[year][month]){
+                            let len = allNotesData[year][month][day].length;
+                            count += len;
+                        }
+                        count && (DBInfo[year][month] = {}) && (DBInfo[year][month]["notesNum"] = count);
+                    }
+                };
+                res.write(JSON.stringify(DBInfo));
+            }
+            res.end();
         });
 
     }

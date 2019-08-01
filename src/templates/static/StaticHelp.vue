@@ -6,7 +6,7 @@
         </div>
         <p style="color: #999;">欢迎使用日历便笺！请从下面的蓝色链接中选择以查看所需帮助。</p>
         <div class="links">
-            <div class="href" v-for="(item, index) in Q_A" :key="index" @click="active(index)">
+            <div class="href" :class="{'active': Q_A_show_control_bools[index]}" v-for="(item, index) in Q_A" :key="index" @click="active(index)">
                 <a href="javascript:void(0);" v-html="item.h"></a>
             </div>
         </div>
@@ -110,9 +110,15 @@ export default {
     text-decoration: none; color: #4082fc;
 }
 .help .href:hover{
+    background-color: rgba(64, 130, 252, .02)
+}
+.help .href.active{
     background-color: rgba(64, 130, 252, .08)
 }
 .help p{
     text-indent: 1rem;
+}
+.ans{
+    word-break: break-all;
 }
 </style>
