@@ -210,7 +210,8 @@ export default {
             that.title_show = that.ia_val.length === 0;
             that.ta_ele.value = that.ta_val = "";
             that.buildTime = n_date.format("hh:mm");
-            that.tip_id = `[${n_date.format("yyyy-MM-dd")}]#${that._toMonth_.toMonthDates[that.toDateDayNum-1].todayNotes.length+1}`;
+            console.log("#213", that._toMonth_.toMonthDates[that.toDateDayNum-1].todayNotes)
+            that.tip_id = `[${n_date.format("yyyy-MM-dd")}]#${that._toMonth_.toMonthDates[that.toDateDayNum-1].todayNotes.filter((x)=>{return x!==null;}).length+1}`;
             that.adding_today_notes = true;
             // 确定新建的 Notes 的序列 #~
             // console.log("#162", that._toMonth_.toMonthDates[new Date(that._toMonth_.todayDate).format("d")].todayNotes.length)
@@ -236,7 +237,10 @@ export default {
             console.log("close");
             that.navIsShow = false;
             that.menuLeave = !that.menuLeave;
+            that.set3pagesDates(that.centerDatesData.objectDate)
             that.back_to_sy_sm();
+            that.isi.active_page = 1;
+            that.calen_header = "事件列表"
         },
         showNav () {
             that.menuLeave = !that.menuLeave;
@@ -325,7 +329,9 @@ export default {
         },
         edit (data) {
             that.adding_today_notes = false;
-            var dayNotes = data.json.toMonthDates[parseInt(data.idx)-1].todayNotes; // Array
+            var dayNotes = data.json.toMonthDates[parseInt(data.idx)-1].todayNotes.filter((x)=>{
+                return x!==null;
+            }); // Array
             if(dayNotes.length === 0) return; // 所选日无便笺可查看或修改
             that.selectedDayNotes = dayNotes;
             that.$refs["notepad-object"].style.visibility = "visible";
@@ -559,6 +565,8 @@ export default {
             that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1), "prevDatesData");
             that.centerDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is));
             that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1), "nextDatesData");
+            // that._toMonth_ = that.makeDatesData(new Date().format("yyyy/MM"))
+            // console.log("#569", that._toMonth_)
             fn && fn();
         },
         backToday () {
@@ -719,6 +727,16 @@ export default {
                                     that.selected_notes_arr_length = tar_notes.length;
                                 }
                             });
+                            // that._toMonth_ notes 同步
+                            will_del_notes_ids.forEach((a) => {
+                                that._toMonth_.toMonthDates.forEach((b, c) => {
+                                    b.todayNotes.forEach((note, i) => {
+                                        if(note.id === a){
+                                            that._toMonth_.toMonthDates[c].todayNotes[i] && that._toMonth_.toMonthDates[c].todayNotes.splice(i, 1)
+                                        }
+                                    });
+                                });
+                            });
                         }
                     },
                     {
@@ -745,10 +763,10 @@ export default {
             "navIsShow": false,
             "sel_show": false,
             // "navIsShow": false,
-            "calen_header": "所有便笺",
+            "calen_header": "事件列表",
             "isi": {
                 "item_tot": 4,
-                "active_page": 0
+                "active_page": 1
             },
             // "isi_control_bool": [],
             "menuLeave": true,
@@ -787,7 +805,7 @@ export default {
                 // forward_disabled: true
             },
             title_show: true,
-            tip_id: "",
+            tip_id: "#",
             ia_val: "",
             ta_val: "",
             selectedDayNotes: [],

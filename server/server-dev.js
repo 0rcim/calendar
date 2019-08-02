@@ -13,17 +13,31 @@ try{
     fs.accessSync(filepath);
 }catch(err){
     fileExist = false;
+
 };
-// const db = fileExist && JSON.parse(fs.readFileSync(filepath, "utf-8"));
 // 如果datesData不存在就新建一个
-fileExist || fs.writeFileSync(filepath, 
-    JSON.stringify({
-        "db_path": "~/server/db/datesData.json",
-        "created": new Date().format("yyyy/MM/dd-hh:mm:ss"),
-        "db": {}
-    }), 
-    "utf-8"
-);
+if(!fileExist){
+    let now = new Date();
+    let originDay = {}, y = parseInt(now.format("yyyy")), m = parseInt(now.format("MM")), d = parseInt(now.format("dd"))
+    originDay[y] = {};
+    originDay[y][m] = {};
+    let firstNotes = {
+        "id": `[${now.format("yyyy-MM-dd")}]#1`,
+        "title": "创建你的第一条今日便笺",
+        "content": "回到「日历」页面，点击顶部右上角「添加按钮」，开始创建你的第一条便笺！\n更多信息请点击菜单中的「帮助」。",
+        "update_time": now.format("hh:mm")
+    };
+    originDay[y][m][d] = [firstNotes];
+    fs.writeFileSync(filepath, 
+       JSON.stringify({
+           "db_path": "~/server/db/datesData.json",
+           "created": now.format("yyyy/MM/dd-hh:mm:ss"),
+           "db": originDay
+       }), 
+       "utf-8"
+   );
+}
+// const db = fileExist && JSON.parse(fs.readFileSync(filepath, "utf-8"));
 http.createServer(function(req, res){
     res.writeHead(200, {"content-type": "text/html;charset=utf-8", "Access-Control-Allow-Origin": "*"});
     if(req.url != "/favicon.ico"){

@@ -12,7 +12,7 @@
             </div>
             <div class="viewall-item" style="background-color: #fff">
                 <div class="nothing"><span>（空）</span></div>
-                <div class="item-inner" style="background-color: #fff;">
+                <div class="item-inner" style="background-color: #fff; min-height: 50%;">
                     <!-- sd_arr.notes 如果都为 {} （空对象） 则隐藏 -->
                     <div class="monthAllData" v-for="(item, index) in sd_arr" :key="index" v-show="!item['notes'].every(n=>{return Object.keys(n).length===0})">
                         <div class="day-header"><span v-text="item['d_header']"></span></div>
@@ -131,7 +131,7 @@ export default {
         that = this;
     },
     mounted () {
-        console.log("s")
+        that.$parent.back_to_sy_sm()
     }
 }
 </script>
@@ -241,7 +241,7 @@ export default {
 .notes-item p{
     margin: 0; padding: .25rem 0 0 0;
     word-break: break-all;
-    color: #4c4c4c;
+    color: #4c4c4c; line-height: 1.45rem;
 }
 .notes-time{
     width: 100%; height: 1.5rem; display: flex; align-items: center;

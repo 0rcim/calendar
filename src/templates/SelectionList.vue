@@ -13,6 +13,7 @@ export default {
             that.$parent.isi.active_page = num;
             that.$parent.sel_show = false;
             that.$parent.calen_header = that.list_map[num].label;
+            that.$parent.back_to_sy_sm()
         }
     },
     created () {
@@ -30,17 +31,20 @@ export default {
                             "onSuccess": function (req) {
                                 var viewall_arr = [];
                                 var data = JSON.parse(req.responseText);
-                                for(var year in data){
-                                    for(var month in data[year]){
-                                        let tmp = {
-                                            "sy": year,
-                                            "sm": month,
-                                            "c": data[year][month].notesNum
-                                        };
-                                        viewall_arr.unshift(tmp);
-                                    }
-                                };
-                                that.$parent["viewall_arr"] = viewall_arr;
+                                console.log(data);
+                                if(Object.keys(data).length){ // data is not {}
+                                    for(var year in data){
+                                        for(var month in data[year]){
+                                            let tmp = {
+                                                "sy": year,
+                                                "sm": month,
+                                                "c": data[year][month].notesNum
+                                            };
+                                            viewall_arr.unshift(tmp);
+                                        }
+                                    };
+                                    that.$parent["viewall_arr"] = viewall_arr;
+                                }
                             }
                         });
                         that.active(0);
