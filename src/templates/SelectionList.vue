@@ -13,7 +13,8 @@ export default {
             that.$parent.isi.active_page = num;
             that.$parent.sel_show = false;
             that.$parent.calen_header = that.list_map[num].label;
-            that.$parent.back_to_sy_sm()
+            that.$parent.back_to_sy_sm();
+            that.$parent.tip_isShow = num===1;
         }
     },
     created () {
@@ -51,7 +52,7 @@ export default {
                     }
                 },
                 {
-                    "label": "事件列表",
+                    "label": "本年一览",
                     "fn": function () {
                         that.active(1);
                     }

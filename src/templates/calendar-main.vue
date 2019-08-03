@@ -21,6 +21,9 @@
                         <touch-ripple :side="'right'" @event_click="hideNav">
                             <md-ico :codepoint="'close'" :color="'#ea5245'"></md-ico>
                         </touch-ripple>
+                        <touch-ripple :side="'right'" @event_click="show_tip" :title="'关于此页'" v-show="tip_isShow">
+                            <md-ico :codepoint="'help_outline'" :color="'#ea5245'"></md-ico>
+                        </touch-ripple>
                         <transition name="offset">
                             <touch-ripple :side="'right'" @event_click="delete_selected" v-show="delete_selected_btn_isShow" :title="'删除所选项'">
                                 <md-ico :codepoint="'delete_forever'" :color="'#ea5245'"></md-ico>
@@ -45,7 +48,9 @@
                                 </div>
                             </transition>
                             <transition name="scale">
-                                <div class="inner-slide-item" v-show="isi_control_bool[1]" style="background-color: orange;">1</div>
+                                <div class="inner-slide-item" v-show="isi_control_bool[1]">
+                                    <yearday-list></yearday-list>
+                                </div>
                             </transition>
                             <transition name="scale">
                                 <div class="inner-slide-item" v-show="isi_control_bool[2]" style="background-color: purple;">2</div>
@@ -135,6 +140,7 @@ import inputArea from "./InputArea.vue";
 import textArea from "./textArea.vue";
 import selectionList from "./SelectionList.vue";
 import viewallNotes from "./ViewallNotes.vue";
+import yeardayList from "./YeardayList.vue";
 // --- static templates --- //
 import staticHelp from "./static/StaticHelp.vue";
 var that = null;
@@ -144,7 +150,7 @@ export default {
         mdIco , touchRipple , weekBanner, 
         datesTable , caleHeader , chevronBtn , 
         inputArea , textArea , selectionList ,
-        staticHelp, viewallNotes
+        staticHelp, viewallNotes , yeardayList
     },
     "computed": {
         isi_control_bool () {
@@ -194,6 +200,21 @@ export default {
         }
     },
     "methods": {
+        show_tip () {
+            window.dia.setData({
+                "dia_isShow": true,
+                "dia_title": "功能页介绍",
+                "dia_content": `<p>本年一览，此页面以小方格的形式标注了本年的所有事件。特殊事件或节日用红色标记。</p><p>点击或鼠标悬停在方格上方可查看当日信息。相同月份的日期使用相同的背景色标注。</p>`,
+                "dia_footer": [
+                    {
+                        "label": "知道啦",
+                        fn () {
+                            window.dia.setData("dia_isShow", false);
+                        }
+                    }
+                ]
+            })
+        },
         sel_show_hide () {
             that.sel_show = !that.sel_show;
         },
@@ -240,7 +261,7 @@ export default {
             that.set3pagesDates(that.centerDatesData.objectDate)
             that.back_to_sy_sm();
             that.isi.active_page = 1;
-            that.calen_header = "事件列表"
+            that.calen_header = "本年一览"
         },
         showNav () {
             that.menuLeave = !that.menuLeave;
@@ -762,8 +783,9 @@ export default {
         return {
             "navIsShow": false,
             "sel_show": false,
+            "tip_isShow": true,
             // "navIsShow": false,
-            "calen_header": "事件列表",
+            "calen_header": "本年一览",
             "isi": {
                 "item_tot": 4,
                 "active_page": 1

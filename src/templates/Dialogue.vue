@@ -7,8 +7,8 @@
                 <div class="dia-content" v-html="dia_content">
                 </div>
                 <div class="dia-footer">
-                    <button v-for="(item, index) in dia_footer" :key="index">
-                        <span v-text="item.label" @click="item.fn"></span>
+                    <button v-for="(item, index) in dia_footer" :key="index" @click="item.fn">
+                        <span v-text="item.label"></span>
                     </button>
                 </div>
             </div>
