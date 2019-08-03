@@ -32,7 +32,8 @@ if(!fileExist){
        JSON.stringify({
            "db_path": "~/server/db/datesData.json",
            "created": now.format("yyyy/MM/dd-hh:mm:ss"),
-           "db": originDay
+           "db": originDay,
+           "settings": []
        }), 
        "utf-8"
    );
@@ -136,6 +137,37 @@ http.createServer(function(req, res){
                     }
                 };
                 res.write(JSON.stringify(DBInfo));
+            }
+            if(req_path === "/sendSettings"){
+                // console.log(reqData)
+                reqData.setting = JSON.parse(reqData.setting);
+                let setting_name = reqData.setting.name;
+                console.log(setting_name)
+                let posi = -1;
+                for(var x=0, l=db["settings"].length; x<l; x++){
+                    if(setting_name === db["settings"][x].name){
+                        posi = db["settings"].indexOf(setting_name);
+                        break;
+                    }
+                };
+                posi !== -1 ? db["settings"].splice(posi, 1, reqData.setting) : db["settings"].push(reqData.setting);
+                fs.writeFileSync(filepath, JSON.stringify(db), "utf-8");
+            }
+            if(req_path === "/getSettings"){
+                console.log(reqData);
+                let name = reqData.name;
+                var obj = {};
+                if(name === "*"){
+                    obj = db["settings"];
+                }else{
+                    for(var x=0, l=db["settings"].length; x<l; x++){
+                        if(db["settings"][x].name === name){
+                            obj = db["settings"][x];
+                            break;
+                        }
+                    }
+                }
+                res.write(JSON.stringify(obj));
             }
             res.end();
         });

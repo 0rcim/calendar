@@ -58,7 +58,9 @@
                                 </div>
                             </transition>
                             <transition name="scale">
-                                <div class="inner-slide-item" v-show="isi_control_bool[2]" style="background-color: purple;">2</div>
+                                <div class="inner-slide-item" v-show="isi_control_bool[2]">
+                                    <static-settings></static-settings>
+                                </div>
                             </transition>
                             <transition name="scale">
                                 <div class="inner-slide-item" v-show="isi_control_bool[3]">
@@ -147,6 +149,7 @@ import selectionList from "./SelectionList.vue";
 import viewallNotes from "./ViewallNotes.vue";
 import yeardayList from "./YeardayList.vue";
 // --- static templates --- //
+import staticSettings from "./static/StaticSettings.vue";
 import staticHelp from "./static/StaticHelp.vue";
 var that = null;
 export default {
@@ -155,7 +158,8 @@ export default {
         mdIco , touchRipple , weekBanner, 
         datesTable , caleHeader , chevronBtn , 
         inputArea , textArea , selectionList ,
-        staticHelp, viewallNotes , yeardayList
+        staticHelp, viewallNotes , yeardayList ,
+        staticSettings
     },
     "computed": {
         isi_control_bool () {
