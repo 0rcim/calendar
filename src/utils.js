@@ -338,9 +338,8 @@ function joint (json){
   return empty.join("&");
 };
 module.exports.scrollToCh_Ele = scrollToCh_Ele;
-function scrollToCh_Ele (fa_ele, ch_ele, buf, dur) {
-  console.log(fa_ele.getBoundingClientRect().top, ch_ele.getBoundingClientRect().top);
-  let scrollLength = ch_ele.getBoundingClientRect().top - fa_ele.getBoundingClientRect().top - buf||0;
+function scrollToCh_Ele (fa_ele, ch_ele, buf, dur, fn) {
+  let scrollLength = ch_ele.getBoundingClientRect().top - fa_ele.getBoundingClientRect().top + buf||0;
   Math.easeInOutQuad = function (t, b, c, d) {
     t /= d/2;
       if (t < 1) return c/2*t*t + b;
@@ -362,6 +361,7 @@ function scrollToCh_Ele (fa_ele, ch_ele, buf, dur) {
           }
       };
       animateScroll();
+      fn && fn();
   };
   scrollTo(fa_ele, scrollLength, dur)
 };

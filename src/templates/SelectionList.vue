@@ -15,6 +15,7 @@ export default {
             that.$parent.calen_header = that.list_map[num].label;
             that.$parent.back_to_sy_sm();
             that.$parent.tip_isShow = num===1;
+            this.$parent.bottom_displayer = num===1;
         }
     },
     created () {

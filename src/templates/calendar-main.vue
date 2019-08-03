@@ -41,6 +41,11 @@
                     <div class="container">
                         <div class="sel-mask" @click="sel_mask_click" v-show="sel_show"></div>
                         <div class="inner-slide-container">
+                            <transition name="fade">
+                                <div class="year-banner-displayer" v-if="bottom_displayer" @click="backToMonth">
+                                    <div class="screen"><span v-text="screen"></span></div>
+                                </div>
+                            </transition>
                             <transition name="scale">
                                 <div class="inner-slide-item" v-show="isi_control_bool[0]">
                                     <!-- pageName (sy_sm || sd) -->
@@ -48,8 +53,8 @@
                                 </div>
                             </transition>
                             <transition name="scale">
-                                <div class="inner-slide-item" v-show="isi_control_bool[1]">
-                                    <yearday-list></yearday-list>
+                                <div class="inner-slide-item" v-show="isi_control_bool[1]" @scroll="yearday_scroll">
+                                    <yearday-list ref="yearday-list"></yearday-list>
                                 </div>
                             </transition>
                             <transition name="scale">
@@ -176,9 +181,9 @@ export default {
                 "normal": {}
             };
             for(let key in spec){
-                for(let k in festivals.specials["ld"][key]){
+                for(let k in festivals.specials["sd"][key]){
                     var u = new Date(utils.specialResolveSD(k, that.sy)).format("yyyy/MM/dd");
-                    spec[key][u] = festivals.specials["ld"][key][k];
+                    spec[key][u] = festivals.specials["sd"][key][k];
                 }
             }
             return spec;
@@ -200,11 +205,21 @@ export default {
         }
     },
     "methods": {
+        yearday_scroll () {
+            that.bottom_displayer = false;
+            clearTimeout(that.scroll_timer);
+            that.scroll_timer = setTimeout(()=>{
+                that.bottom_displayer = true;
+            }, 250);
+        },
+        backToMonth () {
+            that.$refs["yearday-list"].backToMonth();
+        },
         show_tip () {
             window.dia.setData({
                 "dia_isShow": true,
                 "dia_title": "功能页介绍",
-                "dia_content": `<p>本年一览，此页面以小方格的形式标注了本年的所有事件。特殊事件或节日用红色标记。</p><p>点击或鼠标悬停在方格上方可查看当日信息。相同月份的日期使用相同的背景色标注。</p>`,
+                "dia_content": `<p>本年一览，此页面以小方格的形式标注了本年的所有日期，特殊事件或节日用红圈标注出。</p><p>点击小方格即可在左下红框中查看当日信息。单击红框即可回到本月。节日信息显示程度可在设置中调整。</p>`,
                 "dia_footer": [
                     {
                         "label": "知道啦",
@@ -781,9 +796,11 @@ export default {
     },
     data () {
         return {
+            "bottom_displayer": false,
             "navIsShow": false,
             "sel_show": false,
             "tip_isShow": true,
+            "screen": "",
             // "navIsShow": false,
             "calen_header": "本年一览",
             "isi": {
