@@ -26,7 +26,7 @@ try{
     fs.accessSync(filepath);
 }catch(err){
     fileExist = false;
-
+    fs.mkdirSync(path.resolve(__dirname, "./db"));
 };
 // 如果datesData不存在就新建一个
 if(!fileExist){
