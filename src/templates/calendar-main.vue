@@ -162,6 +162,11 @@ export default {
         staticSettings
     },
     "computed": {
+        week_order () {
+            let weeks = ["一","二","三","四","五","六","日"];
+            that.startWeekOn === "周日" && weeks.pop() && weeks.unshift("日");
+            return weeks;
+        },
         isi_control_bool () {
             var empty = [];
             for(var x=0; x<that.isi.item_tot-1; empty[x++]=false);
@@ -295,7 +300,8 @@ export default {
             var tar_month = yyyyMM.replace(/(.*)\/(.*)/, "$2");
             var isTodayTip = now_year == parseInt(tar_year) && now_month === parseInt(tar_month);
             var weekNum = new Date(`${tar_year}/${tar_month}`+"/01").getDay();
-            var frontSpace = weekNum === 0 ? 6 : weekNum - 1; // 日历当月月份前空天数
+            // var frontSpace =  0 ? 6 : weekNum - 1; // 日历当月月份前空天数
+            var frontSpace = that.startWeekOn === "周日" ? weekNum : (weekNum === 0 ? 6 : weekNum - 1);
             var getMonthDayNum = function (_yyyy, _MM) {
                 var d = new Date(_yyyy, _MM, 0);
                 return d.getDate();
@@ -813,7 +819,8 @@ export default {
             },
             // "isi_control_bool": [],
             "menuLeave": true,
-            "week_order": ["一","二","三","四","五","六","日"],
+            startWeekOn: "周一",
+            // "week_order": ["一","二","三","四","五","六","日"],
             "prevDatesData": {},
             "centerDatesData": {},
             "_toMonth_": {},
@@ -896,6 +903,18 @@ export default {
         window.Browser = utils.getBroswerType();
         that.ia_ele = that.$refs["ia"].$el.querySelector("input");
         that.ta_ele = that.$refs["ta"].$el.querySelector("textarea");
+        utils.AjaxRequest.post({
+            "url": "http://localhost:4321/getSettings",
+            "queryString": utils.joint({
+                "name": "周首日"
+            }),
+            "onSuccess": function (req) {
+                let data = JSON.parse(req.responseText);
+                let opt = data.name === "周首日" && data.options.filter((item)=>{return item.checked})[0].label;
+                opt && (that.startWeekOn = opt);
+                console.log(data, opt)
+            }
+        });
     }
 }
 </script>

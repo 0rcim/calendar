@@ -16,7 +16,7 @@
                         <div class="poit circle" v-if="`${year}/${i}/${d}` === fes.time" :style="position(year, i, d)"></div>
                     </div>
                 </div> -->
-                <div v-for="sp in getMMsp(year, i)" :key="sp + 'sp'"></div>
+                <div v-for="sp in MMsp[i]" :key="sp + 'sp'"></div>
                 <div v-for="d in getMonthDayNum(year, i)" :key="d + 'd'" @click="scrollToThisMonth($event, i, d, (fullYearFes[year]&&fullYearFes[year][i]&&fullYearFes[year][i][d])||[])">
                     <span v-text="d"></span>
                     <div class="poit" v-if="sm===i && d===sd" :title="`今日，${year}年${i}月${sd}日`"></div>
@@ -29,12 +29,24 @@
 </template>
 <script>
 let date = new Date();
+let Sun_Sat = ["日", "一", "二", "三", "四", "五", "六"];
 var that = null;
 import { scrollToCh_Ele , sloarToLunar , dateFormat , specialResolveSD } from "../utils";
 dateFormat();
 import { festivals } from "../../server/data/festivalsData";
 export default {
     "name": "yeardayList",
+    "computed": {
+        MMsp () {
+            let i = 0;
+            let sp = [];
+            while (i<12) {
+                sp.push(that.getMMsp(that.year, i));
+                i++;
+            }
+            return sp;
+        }
+    },
     "methods": {
         getMonthDayNum (_yyyy, _MM) {
             var d = new Date(_yyyy, _MM, 0);
@@ -42,7 +54,7 @@ export default {
         },
         getMMsp (_yyyy, _MM) {
             var weekNum = new Date(`${_yyyy}/${_MM}`+"/01").getDay();
-            return weekNum === 0 ? 6 : weekNum - 1;
+            return that.$parent.startWeekOn === "周日" ? weekNum : (weekNum === 0 ? 6 : weekNum - 1);
         },
         position (y, m, d) {
             return {'left': `calc(100% / 7 * ${(d+this.getMMsp(y, m)-1)%7})`, 'top': `${Math.floor((d+this.getMMsp(y, m))/7)*32}px`};
@@ -57,7 +69,8 @@ export default {
                 400
             );
             console.log(fes)
-            this.setScreen(`${this.year}年${i}月${d}日，${fes.length?fes.join('，'):'无事件'}`)
+            let the_date = new Date(this.year, i-1, d);
+            this.setScreen(`${the_date.format("yyyy年M月d日")}，周${Sun_Sat[the_date.getDay()]}，${fes.length?fes.join('，'):'无事件'}`)
         },
         setScreen (val) {
             this.$parent.screen = val;
@@ -124,17 +137,19 @@ export default {
             sm: parseInt(date.format("M")),
             sd: parseInt(date.format("d")),
             fullYearFes: {},
-            week_ref: ["一", "二", "三", "四", "五", "六", "日"],
+            week_ref: Sun_Sat,
             month_ref: ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"]
         }
     },
     mounted () {
+        that.week_ref = that.$parent.week_order;
         this.fullYearFes = this.queryFestival(that.year, ["important", "not-important"]);
         // console.log(this.queryFestival(2019));
         this.backToMonth();
         this.$parent.bottom_displayer = true;
         let fes = (this.fullYearFes[this.year]&&this.fullYearFes[this.year][this.sm]&&this.fullYearFes[this.year][this.sm][this.sd])||[];
-        this.setScreen(`${this.year}年${this.sm}月${this.sd}日，${fes.length?fes.join('，'):'今日'}`);
+        let toDate = new Date(this.year, this.sm-1, this.sd);
+        this.setScreen(`${toDate.format("yyyy年M月d日")}，周${Sun_Sat[toDate.getDay()]}，${fes.length?fes.join('，'):'今日'}`);
     },
     created () {
         that = this;

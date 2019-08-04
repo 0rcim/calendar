@@ -74,7 +74,9 @@ export default {
                             })
                         }),
                         "onSuccess": function () {
-
+                            that.$parent.startWeekOn = that.startWeekOn_options[idx].label;
+                            that.$parent.$refs["yearday-list"].week_ref = that.$parent.week_order;
+                            that.$parent.set3pagesDates(that.$parent.centerDatesData.objectDate);
                         }
                     });
                 },

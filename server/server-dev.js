@@ -143,14 +143,16 @@ http.createServer(function(req, res){
                 reqData.setting = JSON.parse(reqData.setting);
                 let setting_name = reqData.setting.name;
                 console.log(setting_name)
-                let posi = -1;
+                var posi = -1;
                 for(var x=0, l=db["settings"].length; x<l; x++){
                     if(setting_name === db["settings"][x].name){
-                        posi = db["settings"].indexOf(setting_name);
-                        break;
+                        // console.log(db["settings"]);
+                        posi = x;
                     }
                 };
+                console.log(posi)
                 posi !== -1 ? db["settings"].splice(posi, 1, reqData.setting) : db["settings"].push(reqData.setting);
+                console.log(reqData.setting)
                 fs.writeFileSync(filepath, JSON.stringify(db), "utf-8");
             }
             if(req_path === "/getSettings"){
