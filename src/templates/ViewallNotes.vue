@@ -102,18 +102,12 @@ export default {
                     that.sd_arr = arr;
                 }
             });
-            console.log(obj)
-            // that.$emit("goto_sd", obj);
         },
         select_this (o, i) {
             o.notes[i].isSelected = !o.notes[i].isSelected;
             o.notes[i].isSelected ? that.selected_notes_arr.push(o.notes[i]) : 
                 that.selected_notes_arr.splice(that.selected_notes_arr.indexOf(o.notes[i]), 1);
-            // that.$parent.delete_selected_btn_isShow = !!that.selected_notes_arr.length;
             that.$parent.selected_notes_arr_length = that.selected_notes_arr.length;
-            console.log(o.notes[i]);
-            console.log(that.selected_notes_arr.length);
-            // console.log(o, i)
         }
     },
     data () {

@@ -135,8 +135,6 @@ import utils, { joint } from "../utils";
 import { festivals } from "../../server/data/festivalsData";
 utils.dateFormat();
 utils.getComputedStyle();
-// console.log(utils.specialResolveSD("12第最后个Mon.", 2019))
-// console.log("dx", utils.getYearsSolarTerm(2020, "大雪"), utils.getSolarTerm(2019, 12, 7))
 import mdIco from "./MdIco.vue";
 import touchRipple from "./TouchRipple.vue";
 import caleHeader from "./CaleHeader.vue";
@@ -164,8 +162,6 @@ export default {
     "computed": {
         queriedFestivalTable () {
             let result = utils.queryFestival(new Date().format("yyyy")*1, festivals, that.queryList);
-            // that.queryFes = result;
-            console.log("#168", result);
             that.$refs["yearday-list"] && (that.$refs["yearday-list"].fullYearFes = result);
             return result;
         },
@@ -178,7 +174,6 @@ export default {
             var empty = [];
             for(var x=0; x<that.isi.item_tot-1; empty[x++]=false);
             empty.splice(that.isi.active_page, 0, true);
-            console.log("#127", empty)
             return empty;
         },
         isToday () {
@@ -205,12 +200,9 @@ export default {
             return spec;
         },
         back_disabled () {
-            console.log(that.selectedDayNotesPage)
-            console.log(that.selectedDayNotes)
             return that.selectedDayNotesPage === 0;
         },
         forward_disabled () {
-            console.log(that.selectedDayNotes)
             return that.selectedDayNotesPage >= that.selectedDayNotes.length-1;
         },
         note_order () {
@@ -262,12 +254,9 @@ export default {
             that.title_show = that.ia_val.length === 0;
             that.ta_ele.value = that.ta_val = "";
             that.buildTime = n_date.format("hh:mm");
-            console.log("#213", that._toMonth_.toMonthDates[that.toDateDayNum-1].todayNotes)
             that.tip_id = `[${n_date.format("yyyy-MM-dd")}]#${that._toMonth_.toMonthDates[that.toDateDayNum-1].todayNotes.filter((x)=>{return x!==null;}).length+1}`;
             that.adding_today_notes = true;
             // 确定新建的 Notes 的序列 #~
-            // console.log("#162", that._toMonth_.toMonthDates[new Date(that._toMonth_.todayDate).format("d")].todayNotes.length)
-            // console.log("#162", that._toMonth_.toMonthDates[that.toDateDayNum].todayNotes.length)
             if(window.Browser["Edge"] && !window.Browser["IE"]){ // 针对 Edge 翻转效果的问题作出改变
                 that.flip = true;
                 setTimeout(function(){
@@ -286,7 +275,6 @@ export default {
             };
         },
         hideNav () {
-            console.log("close");
             that.navIsShow = false;
             that.menuLeave = !that.menuLeave;
             that.set3pagesDates(that.centerDatesData.objectDate)
@@ -338,9 +326,7 @@ export default {
                     for(var dayNote in data){
                         that[datesData]["toMonthDates"][parseInt(dayNote)-1]["todayNotes"] = data[dayNote]
                     }
-                    console.log("#186", tar_year, tar_month, data)
                     return data;
-                    console.log(now_year, now_month, data);
                 }
             });
             var tMDs = [];
@@ -445,13 +431,10 @@ export default {
                 "onSuccess": function (req) {
                     that.set3pagesDates(that.prev_select_obj.json.objectDate);
                     that.adding_today_notes && that._toMonth_.toMonthDates[that.toDateDayNum-1].todayNotes.push(tmp);
-                    console.log(req.responseText)
                 },
                 "onError": function (req) {
-                    console.log(req.responseText)
                 }
             })
-            console.log(data);
         },
         forceUpdateToday (yyyyMMdd) {
             var index = new Date(yyyyMMdd).format("yyyy/MM");
@@ -483,10 +466,8 @@ export default {
             that.queriedFestivalTable[y][m][d] ? 
                 (bt_dis = that.queriedFestivalTable[y][m][d][0]) : 
                     (bt_dis = sts);
-            // 默认展示农历日，如果节日名称长度超过 5 字则换为农历日的展示
+            // 默认展示农历日，如果节日名称长度超过或等于 5 字则换为农历日的展示
             (bt_dis.length >= 5 || bt_dis.length === 0) && (bt_dis = ld);
-            // console.log(that.queriedFestivalTable);
-            // let eventsTable = utils.queryFestival(sy, festivals, ["important"]);
             return bt_dis;
         },
         hideShowBoth (bool) {
@@ -568,14 +549,11 @@ export default {
             }, 400);
         },
         set3pagesDates (center_yyyyMM_Is, fn) {
-            // console.log("#273", center_yyyyMM_Is);
             var h = parseFloat(window.getComputedStyle(that.$refs["calendar-object"], "").getPropertyValue("height"));
             that.notepadHeight = h;
             that.prevDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, -1), "prevDatesData");
             that.centerDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is));
             that.nextDatesData = that.makeDatesData(that.getTheMonth(center_yyyyMM_Is, 1), "nextDatesData");
-            // that._toMonth_ = that.makeDatesData(new Date().format("yyyy/MM"))
-            // console.log("#569", that._toMonth_)
             fn && fn();
         },
         backToday () {
@@ -639,9 +617,6 @@ export default {
                     that.selected(that.prev_select_obj);
                 }, 400);
             }
-            console.log(distanceFromToday);
-            console.log(that.prev_select_obj)
-            console.log(that._toMonth_)
         },
         titling (e) {
             var val = e.target.value;
@@ -661,7 +636,6 @@ export default {
             that.ta_ele.value = that.ta_val = that.selectedDayNotes[n].content;
             that.buildTime = that.selectedDayNotes[n].update_time;
             that.tip_id = that.selectedDayNotes[n].id;
-            console.log("back")
         },
         forward () {
             that.selectedDayNotesPage ++;
@@ -672,7 +646,6 @@ export default {
             that.ta_ele.value = that.ta_val = that.selectedDayNotes[n].content;
             that.buildTime = that.selectedDayNotes[n].update_time;
             that.tip_id = that.selectedDayNotes[n].id;
-            console.log("forward")
         },
         back_to_sy_sm () {
             that.$refs["viewall-notes"]["pageName"] = "sy_sm";
@@ -728,7 +701,6 @@ export default {
                                                 if(p !== -1){
                                                     that.$refs["viewall-notes"].sd_arr[x].notes.splice(d, 1, {});
                                                 }
-                                                // console.log(that.$refs["viewall-notes"].sd_arr[x].notes)
                                             }
                                         }
                                     }
@@ -753,7 +725,6 @@ export default {
                         fn () {
                             window.dia.setData("dia_isShow", false);
                             let sd_arr = that.$refs["viewall-notes"].sd_arr;
-                            // console.log("#783", will_del_notes_ids)
                             for(var m=0, a=sd_arr.length; m<a; m++){
                                 for(var n=0, b=sd_arr[m]["notes"].length; n<b; n++) 
                                     will_del_notes_ids.indexOf(sd_arr[m]["notes"][n].n_id) !== -1 && 
@@ -777,16 +748,13 @@ export default {
             "sel_show": false,
             "tip_isShow": true,
             "screen": "",
-            // "navIsShow": false,
             "calen_header": "本年一览",
             "isi": {
                 "item_tot": 4,
                 "active_page": 1
             },
-            // "isi_control_bool": [],
             "menuLeave": true,
             startWeekOn: "",
-            // "week_order": ["一","二","三","四","五","六","日"],
             "prevDatesData": {},
             "centerDatesData": {},
             "_toMonth_": {},
@@ -816,10 +784,6 @@ export default {
             Edge_Calendar_Show: true,
             Edge_Notepad_Show: true,
             buildTime: "",
-            edit_bools: {
-                // back_disabled: true,
-                // forward_disabled: true
-            },
             title_show: true,
             tip_id: "#",
             ia_val: "",
@@ -827,15 +791,10 @@ export default {
             selectedDayNotes: [],
             selectedDayNotesPage: 0,
             adding_today_notes: false,
-            // "pageName": "sy_sm",
             "viewall_arr": [],
             back_to_sy_sm_btn_isShow: false,
-            // delete_selected_btn_isShow: false
             selected_notes_arr_length: 0
         }
-    },
-    beforeCreate () {
-        console.log("creating!")
     },
     created () {
         that = this;
@@ -923,8 +882,6 @@ export default {
     box-shadow: 0 2px 4px 0 rgba(14, 30, 37, .16);
     background-color: #fff;
     overflow: hidden;
-    /* height: calc(100% - 24px); width: calc(100% - 40px); */
-    /* max-height: 540px; */
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
     -moz-transform-style: preserve-3d;

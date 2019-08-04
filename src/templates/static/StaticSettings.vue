@@ -59,7 +59,6 @@ export default {
                 "dia_content": "",
                 "options": that.startWeekOn_options,
                 option_selected (idx) {
-                    console.log("#53", idx);
                     window.dia.setData("dia_isShow", false);
                     for(var a=0, l=that.startWeekOn_options.length; a<l; a++){
                         that.startWeekOn_options[a].checked = false;
@@ -90,7 +89,6 @@ export default {
                 "dia_content": "",
                 "options": that.EventsDisplay_options,
                 option_selected (idx) {
-                    console.log("#53", idx);
                     window.dia.setData("dia_isShow", false);
                     for(var a=0, l=that.EventsDisplay_options.length; a<l; a++){
                         that.EventsDisplay_options[a].checked = false;
@@ -105,8 +103,6 @@ export default {
                             })
                         }),
                         "onSuccess": function (req) {
-                            console.log(JSON.parse(req.queryString.split("=")[1]))
-                            // let data = JSON.parse(req.responseText);
                             let opt = JSON.parse(req.queryString.split("=")[1]).options.map((item, index)=>{
                                 return item.checked ? index.toString() : null;
                             }).filter(item=>{

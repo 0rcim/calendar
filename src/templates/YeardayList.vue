@@ -11,11 +11,6 @@
                 <span v-text="month_ref[i-1] + '月'"></span>
             </div>
             <div class="days-group">
-                <!-- <div v-for="d in getMonthDayNum(year, i)" :key="d + 'd'">
-                    <div v-for="fes in fullYearFes" :key="fes.time">
-                        <div class="poit circle" v-if="`${year}/${i}/${d}` === fes.time" :style="position(year, i, d)"></div>
-                    </div>
-                </div> -->
                 <div v-for="sp in MMsp[i]" :key="sp + 'sp'"></div>
                 <div v-for="d in getMonthDayNum(year, i)" :key="d + 'd'" @click="scrollToThisMonth($event, i, d, (fullYearFes[year]&&fullYearFes[year][i]&&fullYearFes[year][i][d])||[])">
                     <span v-text="d"></span>
@@ -68,7 +63,6 @@ export default {
                 -7 + fa.scrollTop,
                 400
             );
-            console.log(fes)
             let the_date = new Date(this.year, i-1, d);
             this.setScreen(`${the_date.format("yyyy年M月d日")}，周${Sun_Sat[the_date.getDay()]}，${fes.length?fes.join('，'):'无事件'}`)
         },
@@ -98,8 +92,6 @@ export default {
     mounted () {
         that.week_ref = that.$parent.week_order;
         this.fullYearFes = that.$parent.queriedFestivalTable;
-        // console.log(that.$parent.queryFes)
-        // console.log(this.queryFestival(2019));
         this.backToMonth();
         this.$parent.bottom_displayer = true;
         let fes = (this.fullYearFes[this.year]&&this.fullYearFes[this.year][this.sm]&&this.fullYearFes[this.year][this.sm][this.sd])||[];

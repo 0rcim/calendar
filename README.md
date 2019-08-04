@@ -1,6 +1,6 @@
 # 日历便笺  
 【webpack + VueJS 练习】
-一个本地应用程序，可以查看公历和农历以及记录当日便笺。  
+一个本地应用程序，包含普通日历功能：查看公历农历、节气节日；以及当日便笺记录等功能。  
 ### 截图  
 ![screen capture](https://www.cnblogs.com/images/cnblogs_com/Orcim/1508992/o_vue-calendar-project.png)
 ### 加载运行
@@ -22,11 +22,11 @@ npm run build
 ```json
 {
   "name": "calendar",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Webpack + VueJS 练习",
   "main": "index.js",
   "scripts": {
-    "app": "node src\/server\/server.js",
+    "app": "node server\/server.js",
     "dev": "webpack-dev-server --open --hot --mode development",
     "build": "webpack --progress --hide-modules --mode production"
   },

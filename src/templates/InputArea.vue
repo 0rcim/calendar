@@ -10,10 +10,7 @@ export default {
     "props": ["title_show", "ia"],
     "methods": {
         titling (e) {
-            // var val = e.target.value;
-            // this.title_show = val.length === 0;
             this.$emit("titling", e)
-            // console.log(e.target.value)
         }
     }
 }

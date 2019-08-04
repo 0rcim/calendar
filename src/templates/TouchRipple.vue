@@ -24,8 +24,6 @@ export default {
 .ico-outer.green:active .touch-ripple::before{background-color: rgba(65, 184, 131, .08);}
 .ico-outer.red:hover .touch-ripple::before{background-color: rgba(244, 67, 54, .25);}
 .ico-outer.red:active .touch-ripple::before{background-color: rgba(244, 67, 54, .35);}
-/* .ico-outer:hover .touch-ripple::before{opacity: 0;} */
-/* .ico-outer:active .touch-ripple::before{background-color: transparent;} */
 .ico-outer.disabled{pointer-events: none;}
 .ico-outer.disabled .touch-ripple .md-ico{opacity: .6; color: #aaa!important;}
 .touch-ripple:hover::before{opacity: 1;}

@@ -33,7 +33,6 @@ export default {
                             "onSuccess": function (req) {
                                 var viewall_arr = [];
                                 var data = JSON.parse(req.responseText);
-                                console.log(data);
                                 if(Object.keys(data).length){ // data is not {}
                                     for(var year in data){
                                         for(var month in data[year]){
