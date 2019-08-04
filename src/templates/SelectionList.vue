@@ -56,6 +56,7 @@ export default {
                     "label": "本年一览",
                     "fn": function () {
                         that.active(1);
+                        that.$parent.$refs["yearday-list"].fullYearFes = that.$parent.queriedFestivalTable;
                     }
                 },
                 {

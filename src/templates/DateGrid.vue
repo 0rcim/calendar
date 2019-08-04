@@ -94,7 +94,7 @@ export default {
 }
 .lunar-date span{
     font-size: 10px; -webkit-text-size-adjust: none;
-    color: #999;
+    color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 @media only screen and (min-width: 512px) {
     .date-grid:hover{background-color: rgba(0, 0, 0, .05);}

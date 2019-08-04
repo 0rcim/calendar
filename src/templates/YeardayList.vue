@@ -31,7 +31,7 @@
 let date = new Date();
 let Sun_Sat = ["日", "一", "二", "三", "四", "五", "六"];
 var that = null;
-import { scrollToCh_Ele , sloarToLunar , dateFormat , specialResolveSD } from "../utils";
+import { scrollToCh_Ele , dateFormat , queryFestival } from "../utils";
 dateFormat();
 import { festivals } from "../../server/data/festivalsData";
 export default {
@@ -83,52 +83,6 @@ export default {
                 -7 + fa.scrollTop,
                 800
             );
-        },
-        queryFestival (yyyy, queryList) {
-            console.log(festivals);
-            const a_day = 86400000;
-            let start = new Date(yyyy, 0, 1).valueOf();
-            let to = new Date(yyyy+1, 0, 1).valueOf();
-            // let b = 0;
-            let tmp = {};
-            for(var s=start; s<to; s += a_day){
-                let dat = new Date(s);
-                let y = parseInt(dat.format("yyyy")), m = parseInt(dat.format("M")), d = parseInt(dat.format("d"));
-                let l_d = sloarToLunar(y, m, d), lm = l_d.lunarMonth, ld = l_d.lunarDay;
-                for(var i=0, len=queryList.length; i<len; i++){
-                    // 遍历农历节日
-                    let q_item = festivals[queryList[i]];
-                    if(q_item["ld"][lm] && q_item["ld"][lm][ld]){
-                        tmp[y] || (tmp[y]={});
-                        tmp[y][m] || (tmp[y][m]={});
-                        tmp[y][m][d] || (tmp[y][m][d]=[]);
-                        tmp[y][m][d].push(q_item["ld"][lm][ld]);
-                    }
-                    // 遍历公历节日
-                    if(q_item["sd"][m] && q_item["sd"][m][d]){
-                        tmp[y] || (tmp[y]={});
-                        tmp[y][m] || (tmp[y][m]={});
-                        tmp[y][m][d] || (tmp[y][m][d]=[]);
-                        tmp[y][m][d].push(q_item["sd"][m][d]);
-                    }
-                }
-                // b++
-            };
-            // 遍历特殊节日
-            let query_obj = festivals["specials"]["sd"];
-            for(var ty in query_obj){
-                if(queryList.indexOf(ty)===-1) continue;
-                let obj = query_obj[ty];
-                for(var sp_day in obj){
-                    let solar_date = new Date(specialResolveSD(sp_day, that.year));
-                    let y = parseInt(solar_date.format("yyyy")), m = parseInt(solar_date.format("M")), d = parseInt(solar_date.format("d"));
-                    tmp[y] || (tmp[y]={});
-                    tmp[y][m] || (tmp[y][m]={});
-                    tmp[y][m][d] || (tmp[y][m][d]=[]);
-                    tmp[y][m][d].push(obj[sp_day]);
-                }
-            }
-            return tmp;
         }
     },
     data () {
@@ -143,7 +97,8 @@ export default {
     },
     mounted () {
         that.week_ref = that.$parent.week_order;
-        this.fullYearFes = this.queryFestival(that.year, ["important", "not-important"]);
+        this.fullYearFes = that.$parent.queriedFestivalTable;
+        // console.log(that.$parent.queryFes)
         // console.log(this.queryFestival(2019));
         this.backToMonth();
         this.$parent.bottom_displayer = true;

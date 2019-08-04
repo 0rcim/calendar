@@ -1,6 +1,6 @@
 // 日历主体框架组件
 <template>
-    <div class="app" ref="app" :class="{'flip': flip}">
+    <div class="app" ref="app" :class="{'flip': flip}" :style="{'visibility': APP}">
         <div ref="calendar-object" class="app-container calendar" :class="{'edge': edge_hack_calendar}" v-show="Edge_Calendar_Show">
             <transition name="fade">
                 <div class="menu-button" v-if="menuLeave">
@@ -162,6 +162,13 @@ export default {
         staticSettings
     },
     "computed": {
+        queriedFestivalTable () {
+            let result = utils.queryFestival(new Date().format("yyyy")*1, festivals, that.queryList);
+            // that.queryFes = result;
+            console.log("#168", result);
+            that.$refs["yearday-list"] && (that.$refs["yearday-list"].fullYearFes = result);
+            return result;
+        },
         week_order () {
             let weeks = ["一","二","三","四","五","六","日"];
             that.startWeekOn === "周日" && weeks.pop() && weeks.unshift("日");
@@ -468,63 +475,19 @@ export default {
             }
         },
         returnBottomLabel (sy, sm, sd, lm, ld) {
-            let int_y = parseInt(sy), int_m = parseInt(sm);
-            that.sy = sy;
-            if(festivals["important"]["ld"][lm] && festivals["important"]["ld"][lm][ld] && festivals["important"]["ld"][lm][ld].length < 5){
-                return festivals["important"]["ld"][lm][ld];
-            }else{
-                if(festivals["important"]["sd"][int_m] && festivals["important"]["sd"][int_m][sd] && festivals["important"]["sd"][int_m][sd].length < 5){
-                    return festivals["important"]["sd"][int_m][sd];
-                }else{
-                    if(festivals["normal"]["ld"][lm] && festivals["normal"]["ld"][lm][ld] && festivals["normal"]["ld"][lm][ld].length < 5){
-                        return festivals["normal"]["ld"][lm][ld];
-                    }else{
-                        if(festivals["not-important"]["ld"][lm] && festivals["not-important"]["ld"][lm][ld] && festivals["not-important"]["ld"][lm][ld].length < 5){
-                            return festivals["not-important"]["ld"][lm][ld];
-                        }else{
-                            // specialDates
-                            if(that.specialDates["important"][new Date(sy, sm-1, sd).format("yyyy/MM/dd")]){
-                                console.log(that.sy)
-                                return that.specialDates["important"][new Date(sy, sm-1, sd).format("yyyy/MM/dd")];
-                            }else{
-                                // chuxi
-                                if(utils.getChuXi(sy) === new Date(sy, sm-1, sd).format("yyyy/M/d")){
-                                    return "除夕";
-                                }else{
-                                    if(utils.getHanShi(sy) ===  new Date(sy, sm-1, sd).format("yyyy/M/d")){
-                                        return "寒食节";
-                                    }else{
-                                        if(utils.getSolarTerm(sy, parseInt(sm), sd)){
-                                            return utils.getSolarTerm(sy, parseInt(sm), sd)
-                                        }else{
-                                            if(ld === "初一"){
-                                                return lm + "月";
-                                            }else{
-                                                // hanshi
-                                                if(festivals["not-important"]["sd"][int_m] && festivals["not-important"]["sd"][int_m][sd] && festivals["not-important"]["sd"][int_m][sd].length < 5){
-                                                    return festivals["not-important"]["sd"][int_m][sd];
-                                                }else{
-                                                    if(festivals["normal"]["sd"][int_m] && festivals["normal"]["sd"][int_m][sd] && festivals["normal"]["sd"][int_m][sd].length < 5){
-                                                        return festivals["normal"]["sd"][int_m][sd];
-                                                    }else{
-                                                        var tmp = that.specialDates["normal"][new Date(sy, sm-1, sd).format("yyyy/MM/dd")];
-                                                        if (tmp && tmp.length < 5) {
-                                                            that.sy = sy;
-                                                            return that.specialDates["normal"][new Date(sy, sm-1, sd).format("yyyy/MM/dd")];
-                                                        }else{
-                                                            return ld;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            let y = parseInt(sy), m = parseInt(sm), d = parseInt(sd);
+            let sts = utils.getSolarTerm(sy, sm, sd);
+            let bt_dis = "";
+            that.queriedFestivalTable[y] && 
+            that.queriedFestivalTable[y][m] && 
+            that.queriedFestivalTable[y][m][d] ? 
+                (bt_dis = that.queriedFestivalTable[y][m][d][0]) : 
+                    (bt_dis = sts);
+            // 默认展示农历日，如果节日名称长度超过 5 字则换为农历日的展示
+            (bt_dis.length >= 5 || bt_dis.length === 0) && (bt_dis = ld);
+            // console.log(that.queriedFestivalTable);
+            // let eventsTable = utils.queryFestival(sy, festivals, ["important"]);
+            return bt_dis;
         },
         hideShowBoth (bool) {
             this.left_show = bool;
@@ -806,6 +769,9 @@ export default {
     },
     data () {
         return {
+            APP: "hidden",
+            queryList: [],
+            "queryFes": {},
             "bottom_displayer": false,
             "navIsShow": false,
             "sel_show": false,
@@ -819,7 +785,7 @@ export default {
             },
             // "isi_control_bool": [],
             "menuLeave": true,
-            startWeekOn: "周一",
+            startWeekOn: "",
             // "week_order": ["一","二","三","四","五","六","日"],
             "prevDatesData": {},
             "centerDatesData": {},
@@ -876,16 +842,13 @@ export default {
         var now_ = new Date();
         var now = now_.format("yyyy/MM")
         that.toDateDayNum = parseInt(now_.format("dd"));
-        // console.log("#237", that.getTheMonth(now, -1))
         that.prevDatesData = that.makeDatesData(that.getTheMonth(now, -1), "prevDatesData");
-        that.centerDatesData = that._toMonth_ =  that.makeDatesData(that.getTheMonth(now));
-        console.log("#742", that._toMonth_)
+        that.centerDatesData = that._toMonth_ = that.makeDatesData(that.getTheMonth(now));
+        that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1), "nextDatesData");
         that.prev_select_obj ={
             "idx": parseInt(now_.format("dd")),
             "json": that._toMonth_
         }
-        that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1), "nextDatesData");
-        console.log(that.makeDatesData(that.getTheMonth(now, -1), "prevDatesData"), that.makeDatesData(that.getTheMonth(now, 0)), that.makeDatesData(that.getTheMonth(now, 1), "nextDatesData"))
         that.forceUpdateToday(now_.format("yyyy/MM/dd")) // 初始化设置今日时间
         that.display_yyyyMMdd = now_.format("yyyy/MM/dd");
         // that.forceUpdateToday("2019/7/31")
@@ -912,7 +875,29 @@ export default {
                 let data = JSON.parse(req.responseText);
                 let opt = data.name === "周首日" && data.options.filter((item)=>{return item.checked})[0].label;
                 opt && (that.startWeekOn = opt);
-                console.log(data, opt)
+                var now_ = new Date();
+                var now = now_.format("yyyy/MM")
+                // 矫正日历显示
+                that.prevDatesData = that.makeDatesData(that.getTheMonth(now, -1), "prevDatesData");
+                that.centerDatesData = that.makeDatesData(that.getTheMonth(now));
+                that.nextDatesData = that.makeDatesData(that.getTheMonth(now, 1), "nextDatesData");
+                that.APP = "visible";
+            }
+        });
+        utils.AjaxRequest.post({
+            "url": "http://localhost:4321/getSettings",
+            "queryString": utils.joint({
+                "name": "节日或事件显示程度"
+            }),
+            "onSuccess": function (req) {
+                let data = JSON.parse(req.responseText);
+                let opt = data.options.map((item, index)=>{
+                    return item.checked ? index.toString() : null;
+                }).filter(item=>{
+                    return item;
+                })[0]; // 获取checked为true的选项的索引
+                let q_list = ["important", "not-important", "normal"].slice(0, parseInt(opt)+1);
+                that.queryList = q_list;
             }
         });
     }

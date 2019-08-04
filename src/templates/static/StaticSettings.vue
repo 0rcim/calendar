@@ -104,8 +104,16 @@ export default {
                                 "options": that.EventsDisplay_options
                             })
                         }),
-                        "onSuccess": function () {
-
+                        "onSuccess": function (req) {
+                            console.log(JSON.parse(req.queryString.split("=")[1]))
+                            // let data = JSON.parse(req.responseText);
+                            let opt = JSON.parse(req.queryString.split("=")[1]).options.map((item, index)=>{
+                                return item.checked ? index.toString() : null;
+                            }).filter(item=>{
+                                return item;
+                            })[0]; // 获取checked为true的选项的索引
+                            let q_list = ["important", "not-important", "normal"].slice(0, parseInt(opt)+1);
+                            that.$parent.queryList = q_list;
                         }
                     });
                 },
