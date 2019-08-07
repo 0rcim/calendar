@@ -56,3 +56,5 @@ npm run build
   }
 }
 ```
+### Others
+![project-type](https://img.shields.io/badge/VueJS-2.6.10-41b883.svg) &nbsp; ![project-type](https://img.shields.io/badge/NodeJS-10.15.3-81b448.svg) &nbsp; ![project-type](https://img.shields.io/badge/Webpack-4.36.1-8ed6fb.svg)
