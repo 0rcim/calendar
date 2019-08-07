@@ -850,11 +850,12 @@ export default {
             }),
             "onSuccess": function (req) {
                 let data = JSON.parse(req.responseText);
-                let opt = data.options.map((item, index)=>{
+                let opt = 2;
+                data.options && (opt = data.options.map((item, index)=>{
                     return item.checked ? index.toString() : null;
                 }).filter(item=>{
                     return item;
-                })[0]; // 获取checked为true的选项的索引
+                })[0]); // 获取checked为true的选项的索引
                 let q_list = ["important", "not-important", "normal"].slice(0, parseInt(opt)+1);
                 that.queryList = q_list;
             }
