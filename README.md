@@ -1,6 +1,8 @@
 # 日历便笺  
 【webpack + VueJS 练习】
 一个本地应用程序，包含普通日历功能：查看公历农历、节气节日；以及当日便笺记录等功能。  
+### 学习总结
+这次练习的总结，请参阅 [Webpack + VueJS 学习、跳坑和总结](https://www.cnblogs.com/Orcim/p/11316307.html) [@Orcim](https://www.cnblogs.com/Orcim)
 ### 截图  
 ![screen capture](https://www.cnblogs.com/images/cnblogs_com/Orcim/1508992/o_vue-calendar-project.png)
 ### 加载运行
